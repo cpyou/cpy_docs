@@ -1,4 +1,4 @@
-
+[TOC]
 
 参考链接：https://blog.csdn.net/qq_44078641/article/details/120049473
 
@@ -49,13 +49,13 @@ Kubespray 是 Kubernetes incubator 中的项目，目标是提供 Production Rea
 
 服务器规划:
 
-| 角色               | IP           | 组件                                                         |
-| ------------------ | ------------ | ------------------------------------------------------------ |
-| k8s-master1        | 192.168.3.25 | kube-apiserver,kube-controller-manager,kube-scheduler,kubelet,kube-proxy,docker,etcd,nginx,keepalived |
-| k8s-node1          | 192.168.3.26 | kubelet,kube-proxy,docker,etcd                               |
-| k8s-node2          | 192.168.3.27 | kubelet,kube-proxy,docker,etcd                               |
-| 负载均衡器(虚拟IP) | 192.168.3.28 |                                                              |
-| k8s-master2        | 192.168.3.29 | kube-apiserver,kube-controller-manager,kube-scheduler,kubelet,kube-proxy,docker,nginx,keepalived |
+| 角色               | IP            | 组件                                                         |
+| ------------------ | ------------- | ------------------------------------------------------------ |
+| k8s-master1        | 192.168.3.125 | kube-apiserver,kube-controller-manager,kube-scheduler,kubelet,kube-proxy,docker,etcd,nginx,keepalived |
+| k8s-node1          | 192.168.3.126 | kubelet,kube-proxy,docker,etcd                               |
+| k8s-node2          | 192.168.3.127 | kubelet,kube-proxy,docker,etcd                               |
+| 负载均衡器(虚拟IP) | 192.168.3.128 |                                                              |
+| k8s-master2        | 192.168.3.129 | kube-apiserver,kube-controller-manager,kube-scheduler,kubelet,kube-proxy,docker,nginx,keepalived |
 
 **须知:**
 
@@ -67,11 +67,11 @@ Kubespray 是 Kubernetes incubator 中的项目，目标是提供 Production Rea
 单Master服务器规划:
 
 
-| 角色          | IP           | 组件                                                         |
-| ----------- | ------------ | ---------------------------------------------------------- |
-| k8s-master1 | 192.168.3.25 | kube-apiserver,kube-controller-manager,kube-scheduler,etcd |
-| k8s-node1   | 192.168.3.26 | kubelet,kube-proxy,docker,etcd                             |
-| k8s-node2   | 192.168.3.27 | kubelet,kube-proxy,docker,etcd                             |
+| 角色        | IP            | 组件                                                       |
+| ----------- | ------------- | ---------------------------------------------------------- |
+| k8s-master1 | 192.168.3.125 | kube-apiserver,kube-controller-manager,kube-scheduler,etcd |
+| k8s-node1   | 192.168.3.126 | kubelet,kube-proxy,docker,etcd                             |
+| k8s-node2   | 192.168.3.127 | kubelet,kube-proxy,docker,etcd                             |
 
 ![在这里插入图片描述](./k8s-二进制部署.assets/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYXQgc2VhIC4=,size_19,color_FFFFFF,t_70,g_se,x_16.png)
 
@@ -98,10 +98,10 @@ hostnamectl set-hostname k8s-node2
 
 #添加hosts
 cat >> /etc/hosts << EOF
-192.168.3.25 k8s-master1 
-192.168.3.26 k8s-node1 
-192.168.3.27 k8s-node2 
-192.168.3.29 k8s-master2
+192.168.3.125 k8s-master1 
+192.168.3.126 k8s-node1 
+192.168.3.127 k8s-node2 
+192.168.3.129 k8s-master2
 EOF
 
 #将桥接的IPV4流量传递到iptables的链
@@ -130,11 +130,11 @@ Etcd 是一个分布式键值存储系统，Kubernetes使用Etcd进行数据存�
 
 ##### 3.2 服务器规划
 
-| 节点名称 | IP           |
-| -------- | ------------ |
-| etcd-1   | 192.168.3.25 |
-| etcd-2   | 192.168.3.26 |
-| etcd-2   | 192.168.3.27 |
+| 节点名称 | IP            |
+| -------- | ------------- |
+| etcd-1   | 192.168.3.125 |
+| etcd-2   | 192.168.3.126 |
+| etcd-2   | 192.168.3.127 |
 
 **说明:**  
 为了节省机器,这里与k8s节点复用,也可以部署在k8s机器之外,只要apiserver能连接到就行。
@@ -243,10 +243,10 @@ cat > server-csr.json << EOF
 {
     "CN": "etcd",
     "hosts": [
-    "192.168.3.25",
-    "192.168.3.26",
-    "192.168.3.27",
-    "192.168.3.29"
+    "192.168.3.125",
+    "192.168.3.126",
+    "192.168.3.127",
+    "192.168.3.129"
     ],
     "key": {
         "algo": "rsa",
@@ -315,13 +315,13 @@ cat > /opt/etcd/cfg/etcd.conf << EOF
 #[Member]
 ETCD_NAME="etcd-1"
 ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
-ETCD_LISTEN_PEER_URLS="https://192.168.3.25:2380"
-ETCD_LISTEN_CLIENT_URLS="https://192.168.3.25:2379"
+ETCD_LISTEN_PEER_URLS="https://192.168.3.125:2380"
+ETCD_LISTEN_CLIENT_URLS="https://192.168.3.125:2379"
 
 #[Clustering]
-ETCD_INITIAL_ADVERTISE_PEER_URLS="https://192.168.3.25:2380"
-ETCD_ADVERTISE_CLIENT_URLS="https://192.168.3.25:2379"
-ETCD_INITIAL_CLUSTER="etcd-1=https://192.168.3.25:2380,etcd-2=https://192.168.3.26:2380,etcd-3=https://192.168.3.27:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="https://192.168.3.125:2380"
+ETCD_ADVERTISE_CLIENT_URLS="https://192.168.3.125:2379"
+ETCD_INITIAL_CLUSTER="etcd-1=https://192.168.3.125:2380,etcd-2=https://192.168.3.126:2380,etcd-3=https://192.168.3.127:2380"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
 ETCD_INITIAL_CLUSTER_STATE="new"
 EOF
@@ -373,8 +373,8 @@ EOF
 ```shell
 for i in {6..7}
 do
-scp -r /opt/etcd/ root@192.168.3.2$i:/opt/
-scp /usr/lib/systemd/system/etcd.service root@192.168.3.2$i:/usr/lib/systemd/system/
+scp -r /opt/etcd/ root@192.168.3.12$i:/opt/
+scp /usr/lib/systemd/system/etcd.service root@192.168.3.12$i:/usr/lib/systemd/system/
 done
 
 ```
@@ -386,13 +386,13 @@ vim /opt/etcd/cfg/etcd.conf
 #[Member]
 ETCD_NAME="etcd-1"    #节点2修改为: etcd-2 节点3修改为: etcd-3
 ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
-ETCD_LISTEN_PEER_URLS="https://192.168.3.25:2380"  #修改为对应节点IP
-ETCD_LISTEN_CLIENT_URLS="https://192.168.3.25:2379"  #修改为对应节点IP
+ETCD_LISTEN_PEER_URLS="https://192.168.3.125:2380"  #修改为对应节点IP
+ETCD_LISTEN_CLIENT_URLS="https://192.168.3.125:2379"  #修改为对应节点IP
 
 #[Clustering]
-ETCD_INITIAL_ADVERTISE_PEER_URLS="https://192.168.3.25:2380" #修改为对应节点IP
-ETCD_ADVERTISE_CLIENT_URLS="https://192.168.3.25:2379" #修改为对应节点IP
-ETCD_INITIAL_CLUSTER="etcd-1=https://192.168.3.25:2380,etcd-2=https://192.168.242.52:2380,etcd-3=https://192.168.242.53:2380"  
+ETCD_INITIAL_ADVERTISE_PEER_URLS="https://192.168.3.125:2380" #修改为对应节点IP
+ETCD_ADVERTISE_CLIENT_URLS="https://192.168.3.125:2379" #修改为对应节点IP
+ETCD_INITIAL_CLUSTER="etcd-1=https://192.168.3.125:2380,etcd-2=https://192.168.3.126:2380,etcd-3=https://192.168.3.127:2380"  
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
 ETCD_INITIAL_CLUSTER_STATE="new"
 
@@ -413,13 +413,13 @@ systemctl enable etcd
 ##### 3.13 检查etcd集群状态
 
 ```shell
-[root@k8s-master1 ~]# ETCDCTL_API=3 /opt/etcd/bin/etcdctl --cacert=/opt/etcd/ssl/ca.pem --cert=/opt/etcd/ssl/server.pem --key=/opt/etcd/ssl/server-key.pem --endpoints="https://192.168.3.25:2379,https://192.168.3.26:2379,https://192.168.3.27:2379" endpoint health --write-out=table
+[root@k8s-master1 ~]# ETCDCTL_API=3 /opt/etcd/bin/etcdctl --cacert=/opt/etcd/ssl/ca.pem --cert=/opt/etcd/ssl/server.pem --key=/opt/etcd/ssl/server-key.pem --endpoints="https://192.168.3.125:2379,https://192.168.3.126:2379,https://192.168.3.127:2379" endpoint health --write-out=table
 +-----------------------------+--------+-------------+-------+
 |          ENDPOINT           | HEALTH |    TOOK     | ERROR |
 +-----------------------------+--------+-------------+-------+
-| https://192.168.3.26:2379 |   true | 67.267851ms |       |
-| https://192.168.3.25:2379 |   true | 67.374967ms |       |
-| https://192.168.3.27:2379 |   true | 69.244918ms |       |
+| https://192.168.3.126:2379 |   true | 67.267851ms |       |
+| https://192.168.3.125:2379 |   true | 67.374967ms |       |
+| https://192.168.3.127:2379 |   true | 69.244918ms |       |
 +-----------------------------+--------+-------------+-------+
 
 
@@ -547,11 +547,11 @@ cat > server-csr.json << EOF
     "hosts": [
       "10.0.0.1",
       "127.0.0.1",
-      "192.168.3.25",
-      "192.168.3.26",
-      "192.168.3.27",
-      "192.168.3.28",
-      "192.168.3.29",
+      "192.168.3.125",
+      "192.168.3.126",
+      "192.168.3.127",
+      "192.168.3.128",
+      "192.168.3.129",
       "kubernetes",
       "kubernetes.default",
       "kubernetes.default.svc",
@@ -608,9 +608,8 @@ https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.20.md
 ```shell
 mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs} 
 tar zxvf kubernetes-server-linux-amd64.tar.gz
-cd kubernetes/server/bin
-cp kube-apiserver kube-scheduler kube-controller-manager /opt/kubernetes/bin
-cp kubectl /usr/bin/
+cp kubernetes/server/bin/{kube-apiserver,kube-scheduler,kube-controller-manager} /opt/kubernetes/bin
+cp kubernetes/server/bin/kubectl /usr/bin/
 
 ```
 
@@ -623,10 +622,10 @@ cat > /opt/kubernetes/cfg/kube-apiserver.conf << EOF
 KUBE_APISERVER_OPTS="--logtostderr=false \\
 --v=2 \\
 --log-dir=/opt/kubernetes/logs \\
---etcd-servers=https://192.168.3.25:2379,https://192.168.3.26:2379,https://192.168.3.27:2379 \\
---bind-address=192.168.3.25 \\
+--etcd-servers=https://192.168.3.125:2379,https://192.168.3.126:2379,https://192.168.3.127:2379 \\
+--bind-address=192.168.3.125 \\
 --secure-port=6443 \\
---advertise-address=192.168.3.25 \\
+--advertise-address=192.168.3.125 \\
 --allow-privileged=true \\
 --service-cluster-ip-range=10.0.0.0/24 \\
 --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota,NodeRestriction \\
@@ -810,7 +809,7 @@ cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kube
 
 ```shell
 KUBE_CONFIG="/opt/kubernetes/cfg/kube-controller-manager.kubeconfig"
-KUBE_APISERVER="https://192.168.3.25:6443"
+KUBE_APISERVER="https://192.168.3.125:6443"
 
 kubectl config set-cluster kubernetes \
   --certificate-authority=/opt/kubernetes/ssl/ca.pem \
@@ -920,7 +919,7 @@ cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kube
 
 ```shell
 KUBE_CONFIG="/opt/kubernetes/cfg/kube-scheduler.kubeconfig"
-KUBE_APISERVER="https://192.168.3.25:6443"
+KUBE_APISERVER="https://192.168.3.125:6443"
 
 kubectl config set-cluster kubernetes \
   --certificate-authority=/opt/kubernetes/ssl/ca.pem \
@@ -1007,7 +1006,7 @@ cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kube
 mkdir /root/.kube
 
 KUBE_CONFIG="/root/.kube/config"
-KUBE_APISERVER="https://192.168.3.25:6443"
+KUBE_APISERVER="https://192.168.3.125:6443"
 
 kubectl config set-cluster kubernetes \
   --certificate-authority=/opt/kubernetes/ssl/ca.pem \
@@ -1067,7 +1066,7 @@ kubectl create clusterrolebinding kubelet-bootstrap \
 mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs}
 for i in {5..7}
 do
-ssh root@192.168.3.2$i "mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs}"
+ssh root@192.168.3.12$i "mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs}"
 done
 ```
 
@@ -1079,7 +1078,7 @@ cd kubernetes/server/bin/
 
 for i in {5..7}
 do
-scp kubelet  kube-proxy root@192.168.3.2$i:/opt/kubernetes/bin/
+scp kubelet  kube-proxy root@192.168.3.12$i:/opt/kubernetes/bin/
 done
 ```
 
@@ -1158,7 +1157,7 @@ EOF
 
 ```shell
 KUBE_CONFIG="/opt/kubernetes/cfg/bootstrap.kubeconfig"
-KUBE_APISERVER="https://192.168.3.25:6443" # apiserver IP:PORT
+KUBE_APISERVER="https://192.168.3.125:6443" # apiserver IP:PORT
 TOKEN="4136692876ad4b01bb9dd0988480ebba" # 与token.csv里保持一致  /opt/kubernetes/cfg/token.csv 
 
 # 生成 kubelet bootstrap kubeconfig 配置文件
@@ -1302,7 +1301,7 @@ cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kube
 
 ```shell
 KUBE_CONFIG="/opt/kubernetes/cfg/kube-proxy.kubeconfig"
-KUBE_APISERVER="https://192.168.3.25:6443"
+KUBE_APISERVER="https://192.168.3.125:6443"
 
 kubectl config set-cluster kubernetes \
   --certificate-authority=/opt/kubernetes/ssl/ca.pem \
@@ -1430,14 +1429,14 @@ kubectl apply -f apiserver-to-kubelet-rbac.yaml
 
 ##### 7.1 拷贝以部署好的相关文件到新节点
 
-在Master节点将Work Node涉及文件拷贝到新节点 3.26/2.27
+在Master节点将Work Node涉及文件拷贝到新节点 3.126/2.127
 
 ```shell
-for i in {6..7}; do scp -r /opt/kubernetes root@192.168.3.2$i:/opt/; done
+for i in {6..7}; do scp -r /opt/kubernetes root@192.168.3.12$i:/opt/; done
 
-for i in {6..7}; do scp -r /usr/lib/systemd/system/{kubelet,kube-proxy}.service root@192.168.3.2$i:/usr/lib/systemd/system; done
+for i in {6..7}; do scp -r /usr/lib/systemd/system/{kubelet,kube-proxy}.service root@192.168.3.12$i:/usr/lib/systemd/system; done
 
-for i in {6..7}; do scp -r /opt/kubernetes/ssl/ca.pem root@192.168.3.2$i:/opt/kubernetes/ssl/; done
+for i in {6..7}; do scp -r /opt/kubernetes/ssl/ca.pem root@192.168.3.12$i:/opt/kubernetes/ssl/; done
 
 ```
 
@@ -1522,6 +1521,7 @@ service/kubernetes-dashboard        NodePort    10.0.0.10    <none>        443:3
 ```shell
 kubectl create serviceaccount dashboard-admin -n kube-system
 kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
+# 获取 secret token
 kubectl describe secrets -n kube-system $(kubectl -n kube-system get secret | awk '/dashboard-admin/{print $1}')
 
 kubectl --namespace=kubernetes-dashboard edit service kubernetes-dashboard
@@ -1540,6 +1540,9 @@ cd deployment/kubernetes/
 #./deploy.sh | kubectl apply -f -
 # 与kubelet-config的clusterDNS对应(部署中此处设置了10.0.0.5，造成下边测试不通过)
 ./deploy.sh -i 10.0.0.2 | kubectl apply -f -
+
+# ./deploy.sh:行61: jq: 未找到命令
+# yum -y install jq
 
 # [root@k8s-master1 yaml]# kubectl apply -f coredns.yaml 
 
@@ -1580,7 +1583,7 @@ Master节点主要有三个服务kube-apiserver、kube-controller-manager和kube
 ##### 9.1 部署Master2 Node
 
 说明：
-现在需要再增加一台新服务器，作为Master2 Node，IP是192.168.3.29。
+现在需要再增加一台新服务器，作为Master2 Node，IP是192.168.3.129。
 Master2 与已部署的Master1所有操作一致。所以我们只需将Master1所有K8s文件拷贝过来，再修改下服务器IP和主机名启动即可。
 
 ###### 9.1.1 安装Docker(Master2)
@@ -1590,7 +1593,7 @@ yum install -y yum-utils device-mapper-persistent-data lvm2
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum install -y docker-ce
 
-scp -r /etc/docker root@192.168.3.29:/etc
+scp -r root@192.168.3.125:/etc/docker /etc
 systemctl start docker
 systemctl enable docker
 docker -v
@@ -1615,15 +1618,15 @@ mkdir -p /opt/etcd/ssl
 拷贝Master1上所有k8s文件和etcd证书到Master2:
 
 ```
-scp -r /opt/kubernetes root@192.168.3.29:/opt
+scp -r /opt/kubernetes root@192.168.3.129:/opt
 
-scp -r /opt/etcd/ssl root@192.168.3.29:/opt/etcd
+scp -r /opt/etcd/ssl root@192.168.3.129:/opt/etcd
 
-scp /usr/lib/systemd/system/kube* root@192.168.3.29:/usr/lib/systemd/system
+scp /usr/lib/systemd/system/kube* root@192.168.3.129:/usr/lib/systemd/system
 
-scp /usr/bin/kubectl  root@192.168.3.29:/usr/bin
+scp /usr/bin/kubectl  root@192.168.3.129:/usr/bin
 
-scp -r ~/.kube root@192.168.3.29:~
+scp -r ~/.kube root@192.168.3.129:~
 
 ```
 
@@ -1643,15 +1646,15 @@ rm -f /opt/kubernetes/ssl/kubelet*
 ```shell
 vi /opt/kubernetes/cfg/kube-apiserver.conf
 ...
---bind-address=192.168.3.29 \
---advertise-address=192.168.3.29 \
+--bind-address=192.168.3.129 \
+--advertise-address=192.168.3.129 \
 ...
 
 vi /opt/kubernetes/cfg/kube-controller-manager.kubeconfig
-server: https://192.168.3.29:6443
+server: https://192.168.3.129:6443
 
 vi /opt/kubernetes/cfg/kube-scheduler.kubeconfig
-server: https://192.168.3.29:6443
+server: https://192.168.3.129:6443
 
 vi /opt/kubernetes/cfg/kubelet.conf
 --hostname-override=k8s-master2
@@ -1661,7 +1664,7 @@ hostnameOverride: k8s-master2
 
 vi ~/.kube/config
 ...
-server: https://192.168.3.29:6443
+server: https://192.168.3.129:6443
 
 ```
 
@@ -1752,8 +1755,8 @@ stream {
     access_log  /var/log/nginx/k8s-access.log  main;
 
     upstream k8s-apiserver {
-       server 192.168.3.25:6443;   # Master1 APISERVER IP:PORT
-       server 192.168.3.29:6443;   # Master2 APISERVER IP:PORT
+       server 192.168.3.125:6443;   # Master1 APISERVER IP:PORT
+       server 192.168.3.129:6443;   # Master2 APISERVER IP:PORT
     }
     
     server {
@@ -1822,7 +1825,7 @@ vrrp_instance VI_1 {
     }  
     # 虚拟IP
     virtual_ipaddress { 
-        192.168.3.28/24
+        192.168.3.128/24
     } 
     track_script {
         check_nginx
@@ -1883,7 +1886,7 @@ vrrp_instance VI_1 {
         auth_pass 1111 
     }  
     virtual_ipaddress { 
-        192.168.3.28/24
+        192.168.3.128/24
     } 
     track_script {
         check_nginx
@@ -1988,18 +1991,20 @@ make
 make完成后不要继续输入“make install”，以免现在的nginx出现问题
 以上完成后，会在objs目录下生成一个nginx文件，先验证:
 
-```
+```shell
 [root@k8s-master2 nginx-1.20.1]# ./objs/nginx -t
 nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
 nginx: configuration file /etc/nginx/nginx.conf test is successful
 
+# nginx: [alert] could not open error log file: open() "/usr/share/nginx/logs/error.log" failed (2: No such file or directory)
+mkdir /usr/share/nginx/logs/
 ```
 
 ###### 9.2.5.4 替换nginx到Master1/Master2
 
 ```
 cp ./objs/nginx /usr/sbin/ 
-scp objs/nginx root@192.168.3.29:/usr/sbin/
+scp objs/nginx root@192.168.3.129:/usr/sbin/
 ```
 
 9.2.5.5 修改nginx服务文件
@@ -2044,9 +2049,9 @@ systemctl enable nginx keepalived
        valid_lft forever preferred_lft forever
 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
     link/ether 00:0c:29:40:1a:d8 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.3.25/24 brd 192.168.242.255 scope global noprefixroute ens33
+    inet 192.168.3.125/24 brd 192.168.242.255 scope global noprefixroute ens33
        valid_lft forever preferred_lft forever
-    inet 192.168.242.55/24 scope global secondary ens33
+    inet 192.168.3.128/24 scope global secondary ens33
        valid_lft forever preferred_lft forever
     inet6 fe80::20c:29ff:fe40:1ad8/64 scope link 
        valid_lft forever preferred_lft forever
@@ -2064,7 +2069,7 @@ systemctl enable nginx keepalived
 
 ```
 
-可以看到，在ens33网卡绑定了192.168.242.55 虚拟IP，说明工作正常。
+可以看到，在ens33网卡绑定了192.168.3.128 虚拟IP，说明工作正常。
 
 ###### 9.2.8 Nginx+keepalived高可用测试
 
@@ -2077,7 +2082,7 @@ systemctl enable nginx keepalived
 找K8s集群中任意一个节点，使用curl查看K8s版本测试，使用VIP访问：
 
 ```shell
-[root@k8s-master1 ~]# curl -k https://192.168.3.28:16443/version
+[root@k8s-master1 ~]# curl -k https://192.168.3.128:16443/version
 {
   "major": "1",
   "minor": "20",
@@ -2096,20 +2101,20 @@ systemctl enable nginx keepalived
 
 ```shell
 [root@k8s-master1 ~]# tailf /var/log/nginx/k8s-access.log 
-192.168.3.25 192.168.3.25:6443 - [21/Oct/2022:08:17:08 +0800] 200 426
-192.168.3.27 192.168.3.25:6443 - [21/Oct/2022:08:17:33 +0800] 200 426
-192.168.3.29 192.168.3.25:6443 - [21/Oct/2022:08:17:41 +0800] 200 426
+192.168.3.125 192.168.3.125:6443 - [21/Oct/2022:08:17:08 +0800] 200 426
+192.168.3.127 192.168.3.125:6443 - [21/Oct/2022:08:17:33 +0800] 200 426
+192.168.3.129 192.168.3.125:6443 - [21/Oct/2022:08:17:41 +0800] 200 426
 
 ```
 
 9.3 修改所有的Work Node连接LB VIP
 
 试想下，虽然我们增加了Master2 Node和负载均衡器，但是我们是从单Master架构扩容的，也就是说目前所有的Worker Node组件连接都还是Master1 Node，如果不改为连接VIP走负载均衡器，那么Master还是单点故障。
-因此接下来就是要改所有Worker Node（kubectl get node命令查看到的节点）组件配置文件，由原来192.168.3.25修改为192.168.3.28（VIP）。
+因此接下来就是要改所有Worker Node（kubectl get node命令查看到的节点）组件配置文件，由原来192.168.3.125修改为192.168.3.128（VIP）。
 在所有Worker Node执行：
 
 ```shell
-sed -i 's#192.168.3.25:6443#192.168.3.28:16443#' /opt/kubernetes/cfg/*
+sed -i 's#192.168.3.125:6443#192.168.3.128:16443#' /opt/kubernetes/cfg/*
 systemctl restart kubelet kube-proxy
 
 ```
@@ -2164,4 +2169,3 @@ kubectl describe secrets -n kube-system $(kubectl -n kube-system get secret | aw
 # 获取节点信息
 kubectl get nodes
 ```
-
