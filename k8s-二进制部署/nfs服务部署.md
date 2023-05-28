@@ -8,8 +8,11 @@
 
 **一、安装 NFS 服务器所需的软件包：** 
 
-```javascript
+```shell
 yum install -y nfs-utils
+
+# Ubuntu 安装
+sudo apt-get install nfs-kernel-server
 ```
 
 复制
@@ -21,6 +24,7 @@ mkdir /home/nfs
 chmod 755 /home/nfs
 vim /etc/exports
 /home/nfs/ 192.168.3.0/24(rw,sync,no_root_squash,no_all_squash)
+/home/ubuntu/cpy/nfs/ 10.0.1.54(rw,sync,no_root_squash,no_all_squash)
 ```
 
 1. `/home/nfs/`: 共享目录位置。
@@ -80,6 +84,8 @@ exportfs
 ```shell
 yum install -y nfs-utils
 
+# Ubuntu 安装
+sudo apt-get install nfs-common
 ```
 
 先为rpcbind做开机启动 然后启动rpcbind服务： 
@@ -135,7 +141,7 @@ total 0
 
 自动挂载很常用，客户端设置一下即可。
 
-```
+```shell
 vi /etc/fstab
 
 192.168.3.25:/home/nfs /home/nfs                   nfs     defaults        0 0
