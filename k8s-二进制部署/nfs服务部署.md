@@ -103,6 +103,7 @@ systemctl start rpcbind.service
 showmount -e 192.168.3.25
 Export list for 192.168.248.208:
 /home/nfs 192.168.248.0/24
+
 ```
 
 在从机上使用 mount 挂载服务器端的目录/home/nfs到客户端某个目录下： 
@@ -117,6 +118,71 @@ mount -t nfs 192.168.3.25:/home/nfs /home/nfs
 ```
 df -h 
 mount
+```
+
+# 五.nfs服务端使用固定端口并启用防火墙开放
+
+> nfs通信是使用udp或tcp协议进行的，上面的nfs环境是建立在nfs服务器防火墙关闭的情况下的搭建，`即需要已经放通相关的端口`，一般线上环境要求较高，会开启防火墙并授权一些策略来控制访问，由于nfs默认除了用`111`（portmapper使用，客户端向服务器发出NFS文件存取功能的询问请求）和`2049`（nfs使用）端口是固定的，其他的几个端口是随机的，因此需要在nfs服务器(192.168.3.25)上配置成固定的端口，再通过防火墙进行开放，步骤如下：
+
+1. 修改配置文件 vi /etc/sysconfig/nfs
+```shell
+vi /etc/sysconfig/nfs # 在最后加上以下配置
+RQUOTAD_PORT=30001
+LOCKD_TCPPORT=30002
+LOCKD_UDPPORT=30002
+MOUNTD_PORT=30003
+STATD_PORT=30004
+```
+
+2. 重启服务
+
+```shell
+systemctl restart rpcbind
+systemctl restart nfs
+```
+
+3. 重新查看端口情况 rpcinfo -p localhost，可看到端口已经使用固定的端口 
+
+```shell
+rpcinfo -p localhost
+```
+
+>    program vers proto   port  service
+>     100000    4   tcp    111  portmapper
+>     100000    3   tcp    111  portmapper
+>     100000    2   tcp    111  portmapper
+>     100000    4   udp    111  portmapper
+>     100000    3   udp    111  portmapper
+>     100000    2   udp    111  portmapper
+>     100005    1   udp  30003  mountd
+>     100005    2   udp  30003  mountd
+>     100005    3   udp  30003  mountd
+>     100003    3   tcp   2049  nfs
+>     100003    4   tcp   2049  nfs
+>     100227    3   tcp   2049  nfs_acl
+>     100003    3   udp   2049  nfs
+>     100003    4   udp   2049  nfs
+>     100227    3   udp   2049  nfs_acl
+>     100021    1   udp  30002  nlockmgr
+>     100021    3   udp  30002  nlockmgr
+>     100021    4   udp  30002  nlockmgr
+>     100021    1   tcp  30002  nlockmgr
+>     100021    3   tcp  30002  nlockmgr
+>     100021    4   tcp  30002  nlockmgr
+
+3. 接下来进行相关的防火墙开放，授权在客户端机器192.168.3.26上能访问
+
+```shell
+#nfs之防火墙
+nfs_client_ip=192.168.3.26
+firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="$nfs_client_ip" port protocol="tcp" port="111" accept"
+firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="$nfs_client_ip" port protocol="udp" port="111" accept"
+firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="$nfs_client_ip" port protocol="tcp" port="2049" accept"
+firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="$nfs_client_ip" port protocol="udp" port="2049" accept"
+firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="$nfs_client_ip" port protocol="tcp" port="30001-30004" accept"
+firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="$nfs_client_ip" port protocol="udp" port="30001-30004" accept"
+firewall-cmd --reload
+firewall-cmd --list-all
 ```
 
 ### 测试 NFS
