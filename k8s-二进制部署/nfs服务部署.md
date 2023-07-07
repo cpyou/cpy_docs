@@ -12,7 +12,7 @@
 yum install -y nfs-utils
 
 # Ubuntu 安装
-sudo apt-get install nfs-kernel-server
+sudo apt-get -y install nfs-kernel-server
 ```
 
 复制
@@ -85,7 +85,7 @@ exportfs
 yum install -y nfs-utils
 
 # Ubuntu 安装
-sudo apt-get install nfs-common
+sudo apt-get -y install nfs-common
 ```
 
 先为rpcbind做开机启动 然后启动rpcbind服务： 
@@ -210,7 +210,7 @@ total 0
 ```shell
 vi /etc/fstab
 
-192.168.3.25:/home/nfs /home/nfs                   nfs     defaults        0 0
+192.168.3.161:/home/nfs /home/nfs                  nfs     defaults        0 0
 ```
 
 ```shell

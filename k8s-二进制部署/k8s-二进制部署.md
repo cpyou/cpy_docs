@@ -255,8 +255,8 @@ cat > server-csr.json << EOF
     "names": [
         {
             "C": "CN",
-            "L": "YuMingYu",
-            "ST": "YuMingYu"
+            "L": "ChenPuYu",
+            "ST": "ChenPuYu"
         }
     ]
 }
@@ -371,8 +371,10 @@ EOF
 ##### 3.10 将master1节点所有生成的文件拷贝到节点2和节点3
 
 ```shell
+ssh-keygen
 for i in {6..7}
 do
+ssh-copy-id -i ~/.ssh/id_rsa.pub -p 22 root@192.168.3.12$i
 scp -r /opt/etcd/ root@192.168.3.12$i:/opt/
 scp /usr/lib/systemd/system/etcd.service root@192.168.3.12$i:/usr/lib/systemd/system/
 done
@@ -430,7 +432,7 @@ systemctl enable etcd
 ##### 3.14 etcd问题排查(日志)
 
 ```shell
-less /var/log/message
+less /var/log/messages
 journalctl -u etcd
 
 
@@ -1066,6 +1068,10 @@ kubectl create clusterrolebinding kubelet-bootstrap \
 mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs}
 for i in {5..7}
 do
+ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.3.12$i
+done
+for i in {5..7}
+do
 ssh root@192.168.3.12$i "mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs}"
 done
 ```
@@ -1617,7 +1623,8 @@ mkdir -p /opt/etcd/ssl
 
 拷贝Master1上所有k8s文件和etcd证书到Master2:
 
-```
+```shell
+ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.3.129
 scp -r /opt/kubernetes root@192.168.3.129:/opt
 
 scp -r /opt/etcd/ssl root@192.168.3.129:/opt/etcd
