@@ -50,6 +50,10 @@ cd goInception
 rm go.sum
 go mod tidy
 go build -o goInception tidb-server/main.go
+
+# mysql 连接goInception 工具命令
+mysql -uroot -h 127.0.0.1 -P 4000
+inception show variables;
 ```
 
 ### 安装redis
@@ -166,6 +170,7 @@ http://127.0.0.1:9123/
 ```shell
 # 外部无法访问
 sudo firewall-cmd --zone=public --add-port=9123/tcp --permanent
+sudo firewall-cmd --reload
 
 # connect() to 127.0.0.1:8888 failed (13: Permission denied) while connecting to upstream
 sudo yum install -y policycoreutils-python
@@ -174,7 +179,24 @@ sudo semanage port --list | grep 8888
 
 ```
 
+无法回滚需要开启binlog
 
+```shell
+# 编辑 MariaDB 的配置文件 my.cnf。通常情况下，该文件位于 /etc/mysql/my.cnf 或 /etc/my.cnf。
+# 在 [mysqld] 部分中添加或修改以下行：
+log_bin = /var/log/mysql/mysql-bin.log
+server_id = 1
+sudo systemctl restart mariadb
+# 确保二进制日志已经启用。您可以通过运行以下命令来检查二进制日志的状态：
+mysql -u root -p -e "SHOW MASTER STATUS;"
+
+
+sudo mkdir -p /var/log/mysql
+sudo chmod 755 /var/log/mysql
+sudo chown -R mysql:mysql /var/log/mysql
+sudo systemctl restart mariadb
+
+```
 
 
 
