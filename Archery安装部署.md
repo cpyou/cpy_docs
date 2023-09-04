@@ -159,6 +159,19 @@ sudo cp -rf static/* /opt/archery/static/
 
 ```
 
+日常启动管理
+
+```shell
+cd /home/jsops/Archery
+source /opt/venv4archery/bin/activate
+supervisorctl status  # 查看服务状态
+supervisorctl start archery qcluster  # 启动 archery qcluster
+supervisorctl restart archery qcluster  # 重启 archery qcluster
+supervisorctl stop archery qcluster  # 停止 archery qcluster
+```
+
+
+
 ## 访问
 
 http://127.0.0.1:9123/
