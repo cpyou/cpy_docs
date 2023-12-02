@@ -82,8 +82,8 @@ helm repo remove aliyun
 在 `/home/shiyanlou/Code/devops` 目录下创建一个 `sy-01-3` 文件夹，命令如下：
 
 ```bash
-mkdir -p /home/shiyanlou/Code/devops/sy-01-3
-cd /home/shiyanlou/Code/devops/sy-01-3
+mkdir -p ~/Code/devops/sy-01-3
+cd ~/Code/devops/sy-01-3
 ```
 
 然后使用 `helm create` 创建一个 `go-hello-word` chart，命令如下：
@@ -154,6 +154,23 @@ tree go-hello-world/
    47               path: {{ .Values.containers.healthCheck.path }}
    48               port: http
    49           {{- end}}
+  ```
+
+  ```
+           ports:
+              - name: http
+                containerPort: {{ .Values.containers.port }}
+                protocol: TCP
+            {{- if .Values.containers.healthCheck.enabled}}
+            livenessProbe:
+              httpGet:
+                path: {{ .Values.containers.healthCheck.path }}
+                port: http
+            readinessProbe:
+              httpGet:
+                path: {{ .Values.containers.healthCheck.path }}
+                port: http
+            {{- end}}
   ```
 
   

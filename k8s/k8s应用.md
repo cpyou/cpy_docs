@@ -153,7 +153,7 @@ spec:
 
 因此，社区提供了 Ingress 对象，为集群提供统一的入口，逻辑如下：
 
-![c80ebde4db1520210144d14708fd74b7-0](/Users/cpy/cpy_code/cpy_docs/k8s-二进制部署/k8s应用.assets/c80ebde4db1520210144d14708fd74b7-0.jpg)
+![c80ebde4db1520210144d14708fd74b7-0](/Users/cpy/cpy_code/cpy_docs/k8s/k8s应用.assets/c80ebde4db1520210144d14708fd74b7-0.jpg)
 
 其中 Ingress 代理的并不是 Pod 的 Service，而是 Pod，之所以在配置的时候是配置的 Service，是为了获取 Pod 的信息。
 

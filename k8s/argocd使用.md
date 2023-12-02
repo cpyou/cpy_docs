@@ -11,12 +11,17 @@ kubectl delete ns argocd
 # 网络不好
 kubectl apply -n argocd -f https://gitee.com/coolops/kubernetes-devops-course/raw/master/argocd/install.yaml
 
-# kubectl get pod -n argocd
+# 查看部署情况
+kubectl get pod -n argocd
 
 kubectl edit service -n argocd argocd-server
 # 将 Type 类型改成 NodePort，保存退出
+
 # 查看 NodePort
 kubectl get service -n argocd argocd-server
+#NAME            TYPE       CLUSTER-IP   EXTERNAL-IP   PORT(S)                      AGE
+# argocd-server   NodePort   10.0.0.6     <none>        80:31784/TCP,443:31830/TCP   24d
+图中显示 NodePort 为31784，我们就可以使用 http://192.168.3.125:31784 进行访问，
 
 # 登录需要用户名和密码，默认的用户名是 admin，密码保存在 argocd-initial-admin-secret 中，可以使用以下命令查看：
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo

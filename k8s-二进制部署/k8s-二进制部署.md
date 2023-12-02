@@ -2163,6 +2163,7 @@ rm -rf /var/lib/etcd/default.etcd/member/*
 #停止另外两台 etcd 节点，因为 etcd 节点启动时需要所有节点一起启动，启动成功后即可使用。
 systemctl stop etcd
 systemctl restart etcd
+systemctl start etcd
 
 ```
 
