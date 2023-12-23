@@ -32,6 +32,7 @@ sudo gitlab-ctl reconfigure  #Configure and start GitLab
 sudo vim /etc/gitlab/gitlab.rb        # 修改默认的配置文件；
 # external_url 'http://192.168.3.172:8081'
 
+
 ```
 
 开启防火墙
@@ -60,6 +61,16 @@ gitlab_rails['gitlab_email_reply_to'] = "cpy@domain.com"
 ```shell
 #修改过ssh端口，gitlab中项目的的ssh地址，会在前面加上协议头和端口号“ssh://git@gitlab.domain.com:55725/huangdc/test.git”
 gitlab_rails['gitlab_shell_ssh_port'] = 55725
+```
+
+**修改密码**
+
+```
+gitlab-rails console -e production
+user = User.where(id:1).first
+user.password='cpy12345'
+user.password_confirmation = 'cpy12345'
+user.save!
 ```
 
 

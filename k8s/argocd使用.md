@@ -16,6 +16,7 @@ kubectl get pod -n argocd
 
 kubectl edit service -n argocd argocd-server
 # 将 Type 类型改成 NodePort，保存退出
+# kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
 
 # 查看 NodePort
 kubectl get service -n argocd argocd-server
