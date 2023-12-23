@@ -4,6 +4,7 @@
 
 ```shell
 curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)
+# 
 chmod +x kubebuilder
 sudo mv kubebuilder /usr/local/bin/
 kubebuilder version
@@ -78,6 +79,11 @@ type ApplicationSpec struct {
 
 ```shell
 make manifests
-/Users/cpy/MyOperatorProjects/application-operator/bin/controller-gen rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+# /Users/cpy/MyOperatorProjects/application-operator/bin/controller-gen rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+git status
+#未跟踪的文件:
+#  （使用 "git add <文件>..." 以包含要提交的内容）
+#	config/crd/bases/
+#	config/rbac/role.yaml
 ```
 
