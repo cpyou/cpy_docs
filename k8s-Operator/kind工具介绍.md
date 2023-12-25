@@ -68,7 +68,11 @@ nodes:
 ```
 
 ```shell
+# 创建集群
 kind create cluster --config ha-config.yaml --name dev6
+# 查看集群
+kubectl cluster-info --context kind-dev6
+kubectl get node
 ```
 
 ## 1.2.5 Kind 用法进阶
