@@ -96,6 +96,10 @@ hostnamectl set-hostname k8s-master2
 hostnamectl set-hostname k8s-node1
 hostnamectl set-hostname k8s-node2
 
+# 根据规划设置主机IP
+nmcli con mod enp0s3 autoconnect yes ipv4.addresses "192.168.3.1/24" ipv4.gateway 192.168.3.1 ipv4.method manual
+nmcli con up enp0s3
+
 #添加hosts
 cat >> /etc/hosts << EOF
 192.168.3.125 k8s-master1 
@@ -372,6 +376,7 @@ EOF
 
 ```shell
 ssh-keygen
+
 for i in {6..7}
 do
 ssh-copy-id -i ~/.ssh/id_rsa.pub -p 22 root@192.168.3.12$i
@@ -462,6 +467,7 @@ sudo tee /etc/docker/daemon.json <<-'EOF'
 EOF
 systemctl start docker
 systemctl enable docker
+
 ```
 
 #### **说明:**
@@ -1066,11 +1072,11 @@ kubectl create clusterrolebinding kubelet-bootstrap \
 
 ```shell
 mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs}
-for i in {5..7}
-do
-ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.3.12$i
-done
-for i in {5..7}
+#for i in {5..7}
+#do
+#ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.3.12$i
+#done
+for i in {6..7}
 do
 ssh root@192.168.3.12$i "mkdir -p /opt/kubernetes/{bin,cfg,ssl,logs}"
 done
@@ -1082,7 +1088,7 @@ done
 #进入到k8s-server软件包目录
 cd kubernetes/server/bin/
 
-for i in {5..7}
+for i in {6..7}
 do
 scp kubelet  kube-proxy root@192.168.3.12$i:/opt/kubernetes/bin/
 done
@@ -1105,6 +1111,7 @@ KUBELET_OPTS="--logtostderr=false \\
 --cert-dir=/opt/kubernetes/ssl \\
 --pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/google-containers/pause-amd64:3.0"
 EOF
+
 ```
 
 --hostname-override ：显示名称,集群唯一(不可重复)。
@@ -1366,6 +1373,8 @@ Calico是一个纯三层的数据中心网络方案，是目前Kubernetes主流�
 查看版本依赖：https://projectcalico.docs.tigera.io/archive/v3.20/getting-started/kubernetes/requirements
 
 ```shell
+mkdir -p yaml
+cd yaml
 wget --no-check-certificate  https://docs.projectcalico.org/archive/v3.20/manifests/calico.yaml
 kubectl apply -f calico.yaml
 kubectl get pods -n kube-system
@@ -1375,7 +1384,7 @@ kubectl get pods -n kube-system
 等Calico Pod都Running,节点也会准备就绪。
 
 ```shell
-[root@k8s-master1 yaml]# kubectl get pods -n kube-system
+[root@k8s-master1 yaml]# kubectl get pods -n kube-system -w
 NAME                                      READY   STATUS    RESTARTS   AGE
 calico-kube-controllers-97769f7c7-zcz5d   1/1     Running   0          3m11s
 calico-node-5tnll                         1/1     Running   0          3m11s
@@ -1449,8 +1458,14 @@ for i in {6..7}; do scp -r /opt/kubernetes/ssl/ca.pem root@192.168.3.12$i:/opt/k
 ##### 7.2 删除kubelet证书和kubeconfig文件
 
 ```shell
-rm -f /opt/kubernetes/cfg/kubelet.kubeconfig 
-rm -f /opt/kubernetes/ssl/kubelet*
+# rm -f /opt/kubernetes/cfg/kubelet.kubeconfig 
+# rm -f /opt/kubernetes/ssl/kubelet*
+for i in {6..7}; 
+do 
+  ssh root@192.168.3.12$i rm -f /opt/kubernetes/cfg/kubelet.kubeconfig
+  ssh root@192.168.3.12$i rm -f /opt/kubernetes/ssl/kubelet*
+done
+
 ```
 
 **说明:**  
@@ -1459,10 +1474,10 @@ rm -f /opt/kubernetes/ssl/kubelet*
 ##### 7.3 修改主机名
 
 ```shell
-vi /opt/kubernetes/cfg/kubelet.conf
+vim /opt/kubernetes/cfg/kubelet.conf
 --hostname-override=k8s-node1
 
-vi /opt/kubernetes/cfg/kube-proxy-config.yml
+vim /opt/kubernetes/cfg/kube-proxy-config.yml
 hostnameOverride: k8s-node1
 
 ```
@@ -1570,6 +1585,9 @@ If you don't see a command prompt, try pressing enter.
 Server:    10.0.0.2
 Address 1: 10.0.0.2 kube-dns.kube-system.svc.cluster.local
 
+Name:      kubernetes
+Address 1: 10.0.0.1 kubernetes.default.svc.cluster.local
+
 ```
 
 
@@ -1611,12 +1629,14 @@ docker -v
 systemctl daemon-reload
 systemctl start docker
 systemctl enable docker
+
 ```
 
 ###### 9.1.3 创建etcd证书目录(Master2)
 
 ```shell
 mkdir -p /opt/etcd/ssl
+
 ```
 
 ###### 9.1.4 拷贝文件(Master1)
@@ -1625,6 +1645,7 @@ mkdir -p /opt/etcd/ssl
 
 ```shell
 ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.3.129
+
 scp -r /opt/kubernetes root@192.168.3.129:/opt
 
 scp -r /opt/etcd/ssl root@192.168.3.129:/opt/etcd
@@ -1644,6 +1665,7 @@ scp -r ~/.kube root@192.168.3.129:~
 ```shell
 rm -f /opt/kubernetes/cfg/kubelet.kubeconfig 
 rm -f /opt/kubernetes/ssl/kubelet*
+
 ```
 
 ###### 9.1.6 修改配置文件和主机名(Master2)
@@ -1651,25 +1673,25 @@ rm -f /opt/kubernetes/ssl/kubelet*
 修改apiserver、kubelet和kube-proxy配置文件为本地IP：
 
 ```shell
-vi /opt/kubernetes/cfg/kube-apiserver.conf
+vim /opt/kubernetes/cfg/kube-apiserver.conf
 ...
 --bind-address=192.168.3.129 \
 --advertise-address=192.168.3.129 \
 ...
 
-vi /opt/kubernetes/cfg/kube-controller-manager.kubeconfig
+vim /opt/kubernetes/cfg/kube-controller-manager.kubeconfig
 server: https://192.168.3.129:6443
 
-vi /opt/kubernetes/cfg/kube-scheduler.kubeconfig
+vim /opt/kubernetes/cfg/kube-scheduler.kubeconfig
 server: https://192.168.3.129:6443
 
-vi /opt/kubernetes/cfg/kubelet.conf
+vim /opt/kubernetes/cfg/kubelet.conf
 --hostname-override=k8s-master2
 
-vi /opt/kubernetes/cfg/kube-proxy-config.yml
+vim /opt/kubernetes/cfg/kube-proxy-config.yml
 hostnameOverride: k8s-master2
 
-vi ~/.kube/config
+vim ~/.kube/config
 ...
 server: https://192.168.3.129:6443
 
@@ -1992,6 +2014,7 @@ tar -xf nginx-1.20.1.tar.gz
 cd nginx-1.20.1/
 ./configure --prefix=/usr/share/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib64/nginx/modules --conf-path=/etc/nginx/nginx.conf  --with-stream
 make
+
 ```
 
 **说明:**
@@ -2012,9 +2035,10 @@ mkdir /usr/share/nginx/logs/
 ```
 cp ./objs/nginx /usr/sbin/ 
 scp objs/nginx root@192.168.3.129:/usr/sbin/
+
 ```
 
-9.2.5.5 修改nginx服务文件
+###### 9.2.5.5 修改nginx服务文件
 
 ```shell
 vim /usr/lib/systemd/system/nginx.service
@@ -2081,8 +2105,8 @@ systemctl enable nginx keepalived
 ###### 9.2.8 Nginx+keepalived高可用测试
 
 关闭主节点Nginx，测试VIP是否漂移到备节点服务器。
-在Nginx Master执行 pkill nginx;
-在Nginx Backup，ip addr命令查看已成功绑定VIP。
+在Nginx Master执行 `pkill nginx`;
+在Nginx Backup，`ip addr`命令查看已成功绑定VIP。
 
 ###### 9.2.9 访问负载均衡器测试
 
