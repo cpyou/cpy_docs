@@ -34,6 +34,7 @@ Harbor 是一个用于存储和分发 Docker 镜像的企业级 Registry 服务�
 ```bash
 helm repo add harbor  https://helm.goharbor.io
 helm repo update
+
 ```
 
 #### 下载 Harbor Charts 包到本地
@@ -41,13 +42,14 @@ helm repo update
 进入 `~/Code/devops` 目录中，创建一个 `sy-01-4` 目录，并下载 Harbor 的 Chart：
 
 ```bash
-mkdir ~/Code/devops/sy-01-4
+mkdir -p ~/Code/devops/sy-01-4
 cd ~/Code/devops/sy-01-4
 helm search repo harbor
 helm pull harbor/harbor --untar
 # 命令执行后，会把 Harbor 的 Charts 下载到本地并解压，如下：
 ll
 # drwxr-xr-x 3 root root 111 12月  2 13:34 harbor
+
 ```
 
 #### 创建名称空间
@@ -85,6 +87,22 @@ persistence:
 ```
 
 > PS: externalURL: `http://192.168.3.125:30002` 配置的是 Harbor UI 登录的地址，各位在做实验的时候根据自己的配置更改。
+
+
+
+```shell
+helm upgrade --install harbor harbor/harbor --namespace harbor --create-namespace \
+  --set expose.type=ingress \
+  --set expose.ingress.className=nginx \
+  --set expose.ingress.hosts.core=core.harbor.domain \
+  --set expose.ingress.hosts.notary=notary.harbor.domain \
+  --set externalURL=https://core.harbor.domain:32466 \
+  --set harborAdminPassword="Harbor12345" \
+  --set registry.existingSecretKey="S7ZtwtNSC5UA8Lsp"
+
+```
+
+
 
 #### 安装 Harbor
 

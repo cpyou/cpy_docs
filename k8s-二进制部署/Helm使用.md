@@ -23,6 +23,7 @@ cd linux-amd64
 sudo mv helm /usr/local/bin
 # 查看能否正常获取 Helm 版本
 helm version
+
 ```
 
 # Helm命令
@@ -75,6 +76,7 @@ helm repo update
 
 # 删除仓库
 helm repo remove aliyun
+
 ```
 
 # 制作 Helm Chart
@@ -84,6 +86,7 @@ helm repo remove aliyun
 ```bash
 mkdir -p ~/Code/devops/sy-01-3
 cd ~/Code/devops/sy-01-3
+
 ```
 
 然后使用 `helm create` 创建一个 `go-hello-word` chart，命令如下：
@@ -156,25 +159,8 @@ tree go-hello-world/
    49           {{- end}}
   ```
 
-  ```
-           ports:
-              - name: http
-                containerPort: {{ .Values.containers.port }}
-                protocol: TCP
-            {{- if .Values.containers.healthCheck.enabled}}
-            livenessProbe:
-              httpGet:
-                path: {{ .Values.containers.healthCheck.path }}
-                port: http
-            readinessProbe:
-              httpGet:
-                path: {{ .Values.containers.healthCheck.path }}
-                port: http
-            {{- end}}
-  ```
-
   
-
+  
 - 修改 `go-hello-world/values.yaml`，修改后如下：
 
   ```
@@ -217,7 +203,7 @@ kubectl get pod
 # nginx-go-hello-world-5984f9f589-cjp24              1/1     Running       0          39s
 
 # 可以查看集群中已经部署的 Release
-helm list 
+helm list
 # nginx	default  	1       	2023-11-15 09:25:52.377329307 -0500 EST	deployed	go-hello-world-0.1.0	1.16.0
 ```
 

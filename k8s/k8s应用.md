@@ -1,5 +1,7 @@
 K8s 安装工具
 
+[TOC]
+
 
 
 # 安装OpenEBS
@@ -18,6 +20,8 @@ kubectl create namespace devops
 mkdir /home/shiyanlou/Code/devops/sy-01-1
 cd /home/shiyanlou/Code/devops/sy-01-1
 ```
+
+# ingress-nginx 使用
 
 在 `/home/shiyanlou/Code/devops/sy-01-1` 目录下创建 `nginx-deploy.yaml` 文件，写入以下内容：
 
@@ -104,6 +108,10 @@ Service 的类型有 4 种，Cluster IP，LoadBalance，NodePort，ExternalName�
 - NodePort：顾名思义是 Node 之上的 Port，如果选择该值，这个 Service 可以通过 `NodeIP:NodePort` 访问这个 Service 服务，NodePort 会路由到 Cluster IP 服务，这个 Cluster IP 会通过请求自动创建；
 - ExternalName：通过返回 CNAME 和它的值，可以将服务映射到 externalName 字段的内容，没有任何类型代理被创建，可以用于访问集群内其他没有 Labels 的 Pod，也可以访问其他 NameSpace 里的 Service。
 
+
+
+
+
 在 `/home/shiyanlou/Code/devops/sy-01-1` 目录下创建 `nginx-svc.yaml` 文件，写入以下内容：
 
 ```yaml
@@ -122,7 +130,9 @@ spec:
       port: 80
 ```
 
-```
+
+
+```shell
 kubectl apply -f nginx-svc.yaml
 kubectl get service
 ```
@@ -162,11 +172,16 @@ spec:
 ```shell
 # 安装 Nginx ingress controller
 kubectl apply -f https://raw.githubusercontent.com/joker-bai/kubernetes-software-yaml/main/ingress/nginx/ingress-nginx.yaml
+
+# 查看部署状态,ingress-controller 会部署在 `ingress-nginx` 名称空间下, Pod 的状态为 `running` 则表示部署成功
+kubectl get pod -n ingress-nginx
+# NAME                                        READY   STATUS      RESTARTS   AGE
+# ingress-nginx-admission-create-ttlrw        0/1     Completed   0          2m35s
+# ingress-nginx-admission-patch-jf598         0/1     Completed   1          2m35s
+# ingress-nginx-controller-6d68fc7484-k72kc   1/1     Running     0          2m35s
 ```
 
-ingress-controller 会部署在 `ingress-nginx` 名称空间下，所以我们可以使用 `kubectl get pod -n ingress-nginx` 查看部署状态，Pod 的状态为 `running` 则表示部署成功，如下：
-
-#### 暴露 ingress-nginx 服务
+## 暴露 ingress-nginx 服务
 
 在 `/home/shiyanlou/Code/devops/sy-01-1` 目录下创建 `ingress-svc.yaml` 文件，写入以下内容：
 
@@ -213,7 +228,7 @@ kubectl get service -n ingress-nginx
 
 由于 ingress-controller 也是一个 Pod，它本身也需要暴露出去才能访问，所以如上 Service 可以通过 NodePort 进行访问。
 
-#### 配置 Nginx 应用的 Ingress
+## 配置 Nginx 应用的 Ingress
 
 在 `/home/shiyanlou/Code/devops/sy-01-1` 目录下创建 `nginx-ingress.yaml` 文件，写入以下内容：
 
@@ -245,7 +260,7 @@ kubectl apply -f nginx-ingress.yaml
 kubectl get ingress
 ```
 
-#### 配置域名解析并访问
+## 配置域名解析并访问
 
 但是现在我们无法直接进行访问，因为域名没有做解析，为了方便，直接在本地 hosts 里进行解析。
 

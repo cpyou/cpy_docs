@@ -440,8 +440,17 @@ systemctl enable etcd
 less /var/log/messages
 journalctl -u etcd
 
-
 ```
+
+##### 3.15 备份etcd：
+
+```shell
+
+# etcdctl --endpoints $ENDPOINT snapshot save snapshot.db
+/opt/etcd/bin/etcdctl --cacert=/opt/etcd/ssl/ca.pem --cert=/opt/etcd/ssl/server.pem --key=/opt/etcd/ssl/server-key.pem --endpoints https://192.168.3.125:2379 snapshot save etcd-snapshot.db
+```
+
+
 
 #### 4、安装Docker(所有节点)
 
@@ -2193,7 +2202,7 @@ systemctl start etcd
 
 
 
-常用命令：
+# 常用命令：
 
 ```shell
 # 获取dashboard token

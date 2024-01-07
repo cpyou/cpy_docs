@@ -46,7 +46,8 @@ https://www.jianshu.com/p/7de86bd87226
 ###### 1.1 生成CA证书私钥。
 
 ```shell
-mkdir habor
+mkdir harbor
+cd habor
 openssl genrsa -out ca.key 4096
 ```
 
@@ -61,6 +62,7 @@ openssl req -sha512 -new \
     -subj "/C=CN/ST=Beijing/L=Beijing/O=example/OU=Personal/CN=yourdomain.com" \
     -key ca.key \
     -out ca.crt
+
 ```
 
 > ip地址则如下
@@ -69,9 +71,10 @@ openssl req -sha512 -new \
 
 ```shell
 openssl req -x509 -new -nodes -sha512 -days 3650 \
-    -subj "/C=CN/ST=Beijing/L=Beijing/O=example/OU=Personal/CN=192.168.3.31" \
+    -subj "/C=CN/ST=Beijing/L=Beijing/O=example/OU=Personal/CN=192.168.3.175" \
     -key ca.key \
     -out ca.crt
+
 ```
 
 #### 2、生成服务器证书
@@ -91,7 +94,7 @@ openssl genrsa -out yourdomain.com.key 4096
 
 
 ```shell
-openssl genrsa -out 192.168.3.31.key 4096
+openssl genrsa -out 192.168.3.175.key 4096
 ```
 
 ###### 2.2 生成证书签名请求（CSR）
@@ -113,9 +116,9 @@ openssl req -sha512 -new \
 
 ```shell
 openssl req -sha512 -new \
-    -subj "/C=CN/ST=Beijing/L=Beijing/O=example/OU=Personal/CN=192.168.3.31" \
-    -key 192.168.3.31.key \
-    -out 192.168.3.31.csr
+    -subj "/C=CN/ST=Beijing/L=Beijing/O=example/OU=Personal/CN=192.168.3.175" \
+    -key 192.168.3.175.key \
+    -out 192.168.3.175.csr
 ```
 
 ###### 2.3 生成一个x509 `v3`扩展文件。
@@ -149,7 +152,7 @@ authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
 extendedKeyUsage = serverAuth
-subjectAltName = IP:192.168.3.31
+subjectAltName = IP:192.168.3.175
 EOF
 ```
 
@@ -175,24 +178,14 @@ openssl x509 -req -sha512 -days 3650 \
 openssl x509 -req -sha512 -days 3650 \
     -extfile v3.ext \
     -CA ca.crt -CAkey ca.key -CAcreateserial \
-    -in 192.168.3.31.csr \
-    -out 192.168.3.31.crt
+    -in 192.168.3.175.csr \
+    -out 192.168.3.175.crt
+#Signature ok
+#subject=/C=CN/ST=Beijing/L=Beijing/O=example/OU=Personal/CN=192.168.3.175
+#Getting CA Private Key
 ```
 
-- 输出结果
 
-
-
-```shell
-[root@nfs cert]# openssl x509 -req -sha512 -days 3650 \
->     -extfile v3.ext \
->     -CA ca.crt -CAkey ca.key -CAcreateserial \
->     -in 192.168.3.31.csr \
->     -out 192.168.3.31.crt
-Signature ok
-subject=/C=CN/ST=Beijing/L=Beijing/O=example/OU=Personal/CN=192.168.3.31
-Getting CA Private Key
-```
 
 #### 3、提供证书给Harbor和Docker
 
@@ -210,8 +203,8 @@ cp yourdomain.com.key /data/cert/
 
 ```shell
 mkdir -p /data/cert/
-cp 192.168.3.31.crt /data/cert/
-cp 192.168.3.31.key /data/cert/
+cp 192.168.3.175.crt /data/cert/
+cp 192.168.3.175.key /data/cert/
 ```
 
 ###### 3.2、转换yourdomain.com.crt为yourdomain.com.cert，供Docker使用。
@@ -219,13 +212,13 @@ cp 192.168.3.31.key /data/cert/
 Docker守护程序将.crt文件解释为CA证书，并将.cert文件解释为客户端证书。
 
 ```shell
-openssl x509 -inform PEM -in 192.168.3.31.crt -out 192.168.3.31.cert
+openssl x509 -inform PEM -in 192.168.3.175.crt -out 192.168.3.175.cert
 ```
 
 > ip地址则如下
 
 ```shell
-openssl x509 -inform PEM -in 192.168.3.31.crt -out 192.168.3.31.cert
+openssl x509 -inform PEM -in 192.168.3.175.crt -out 192.168.3.175.cert
 ```
 
 ###### 3.3、将服务器证书，密钥和CA文件复制到Harbor主机上的Docker证书文件夹中。您必须首先创建适当的文件夹。
@@ -240,10 +233,10 @@ cp ca.crt /etc/docker/certs.d/yourdomain.com/
 > ip地址则如下
 
 ```shell
-mkdir -p /etc/docker/certs.d/192.168.3.31/
-cp 192.168.3.31.cert /etc/docker/certs.d/192.168.3.31/
-cp 192.168.3.31.key /etc/docker/certs.d/192.168.3.31/
-cp ca.crt /etc/docker/certs.d/192.168.3.31/
+mkdir -p /etc/docker/certs.d/192.168.3.175/
+cp 192.168.3.175.cert /etc/docker/certs.d/192.168.3.175/
+cp 192.168.3.175.key /etc/docker/certs.d/192.168.3.175/
+cp ca.crt /etc/docker/certs.d/192.168.3.175/
 ```
 
 默认目录结构如下。
@@ -260,9 +253,9 @@ cp ca.crt /etc/docker/certs.d/192.168.3.31/
 
 ```shell
 /etc/docker/certs.d/
-    └── 192.168.3.31
-       ├── 192.168.3.31.cert  <-- 由CA签署的服务器证书
-       ├── 192.168.3.31.key   <-- 由CA签名的服务器密钥
+    └── 192.168.3.175
+       ├── 192.168.3.175.cert  <-- 由CA签署的服务器证书
+       ├── 192.168.3.175.key   <-- 由CA签名的服务器密钥
        └── ca.crt               <-- 签署注册表证书的证书颁发机构
 ```
 
@@ -288,9 +281,9 @@ systemctl restart docker
 
 ```shell
 /etc/docker/certs.d/
-    └── 192.168.3.31:8080
-       ├── 192.168.3.31:8080.cert  <-- 由CA签署的服务器证书
-       ├── 192.168.3.31:8080.key   <-- 由CA签名的服务器密钥
+    └── 192.168.3.175:8080
+       ├── 192.168.3.175:8080.cert  <-- 由CA签署的服务器证书
+       ├── 192.168.3.175:8080.key   <-- 由CA签名的服务器密钥
        └── ca.crt               <-- 签署注册表证书的证书颁发机构
 ```
 
@@ -350,7 +343,7 @@ vim harbor.yml
 
 # The IP address or hostname to access admin UI and registry service.
 # DO NOT use localhost or 127.0.0.1, because Harbor needs to be accessed by external clients.
-hostname: 192.168.3.31    #必定修改，当前主机IP
+hostname: 192.168.3.175    #必定修改，当前主机IP
 
 # http related config
 http:
@@ -362,8 +355,8 @@ https:
   # https port for harbor, default is 443
   port: 443
   # The path of cert and key files for nginx
-  certificate: /data/cert/192.168.3.31.crt    #生成证书的位置
-  private_key: /data/cert/192.168.3.31.key  #生成秘钥的位置
+  certificate: /data/cert/192.168.3.175.crt    #生成证书的位置
+  private_key: /data/cert/192.168.3.175.key  #生成秘钥的位置
 
 # # Uncomment following will enable tls communication between all harbor components
 # internal_tls:
@@ -620,7 +613,7 @@ Creating harbor-jobservice ...
 ✔ ----Harbor has been installed and started successfully.----
 ```
 
-网址输入 `192.168.3.31`就可以自动跳转至https，页面会显示不安全，这是因为本地没有安装ca证书，直接访问即可
+网址输入 `192.168.3.175`就可以自动跳转至https，页面会显示不安全，这是因为本地没有安装ca证书，直接访问即可
 
 ## 上传镜像
 
@@ -649,26 +642,26 @@ daocloud.io/daocloud/pause                     3.2                 80d28bedfe5d 
 - 重新打个tag
 
 ```shell
-[root@nfs ~]# docker tag daocloud.io/daocloud/kube-proxy:v1.20.2 192.168.3.31/k8s/kube-proxy:v1.20.2
-[root@nfs ~]# docker tag daocloud.io/daocloud/kube-apiserver:v1.20.2 192.168.3.31/k8s/kube-apiserver:v1.20.2
-[root@nfs ~]# docker tag daocloud.io/daocloud/kube-controller-manager:v1.20.2 192.168.3.31/k8s/kube-controller-manager:v1.20.2
-[root@nfs ~]# docker tag daocloud.io/daocloud/kube-scheduler:v1.20.2 192.168.3.31/k8s/kube-scheduler:v1.20.2
-[root@nfs ~]# docker tag daocloud.io/daocloud/etcd:3.4.13-0 192.168.3.31/k8s/etcd:3.4.13-0
-[root@nfs ~]# docker tag daocloud.io/daocloud/coredns:1.7.0 192.168.3.31/k8s/coredns:1.7.0
-[root@nfs ~]# docker tag daocloud.io/daocloud/pause:3.2 192.168.3.31/k8s/pause:3.2
+[root@nfs ~]# docker tag daocloud.io/daocloud/kube-proxy:v1.20.2 192.168.3.175/k8s/kube-proxy:v1.20.2
+[root@nfs ~]# docker tag daocloud.io/daocloud/kube-apiserver:v1.20.2 192.168.3.175/k8s/kube-apiserver:v1.20.2
+[root@nfs ~]# docker tag daocloud.io/daocloud/kube-controller-manager:v1.20.2 192.168.3.175/k8s/kube-controller-manager:v1.20.2
+[root@nfs ~]# docker tag daocloud.io/daocloud/kube-scheduler:v1.20.2 192.168.3.175/k8s/kube-scheduler:v1.20.2
+[root@nfs ~]# docker tag daocloud.io/daocloud/etcd:3.4.13-0 192.168.3.175/k8s/etcd:3.4.13-0
+[root@nfs ~]# docker tag daocloud.io/daocloud/coredns:1.7.0 192.168.3.175/k8s/coredns:1.7.0
+[root@nfs ~]# docker tag daocloud.io/daocloud/pause:3.2 192.168.3.175/k8s/pause:3.2
 ```
 
 - 查看 tag
 
 ```shell
-[root@nfs ~]# docker images  |grep 192.168.3.31
-192.168.3.31/k8s/kube-proxy                     v1.20.2    43154ddb57a8   2 months ago    118MB
-192.168.3.31/k8s/kube-controller-manager        v1.20.2    a27166429d98   2 months ago    116MB
-192.168.3.31/k8s/kube-apiserver                 v1.20.2    a8c2fdb8bf76   2 months ago    122MB
-192.168.3.31/k8s/kube-scheduler                 v1.20.2    ed2c44fbdd78   2 months ago    46.4MB
-192.168.3.31/k8s/etcd                           3.4.13-0   0369cf4303ff   6 months ago    253MB
-192.168.3.31/k8s/coredns                        1.7.0      bfe3a36ebd25   9 months ago    45.2MB
-192.168.3.31/k8s/pause                          3.2        80d28bedfe5d   13 months ago   683kB
+[root@nfs ~]# docker images  |grep 192.168.3.175
+192.168.3.175/k8s/kube-proxy                     v1.20.2    43154ddb57a8   2 months ago    118MB
+192.168.3.175/k8s/kube-controller-manager        v1.20.2    a27166429d98   2 months ago    116MB
+192.168.3.175/k8s/kube-apiserver                 v1.20.2    a8c2fdb8bf76   2 months ago    122MB
+192.168.3.175/k8s/kube-scheduler                 v1.20.2    ed2c44fbdd78   2 months ago    46.4MB
+192.168.3.175/k8s/etcd                           3.4.13-0   0369cf4303ff   6 months ago    253MB
+192.168.3.175/k8s/coredns                        1.7.0      bfe3a36ebd25   9 months ago    45.2MB
+192.168.3.175/k8s/pause                          3.2        80d28bedfe5d   13 months ago   683kB
 ```
 
 - push仓库
@@ -676,20 +669,20 @@ daocloud.io/daocloud/pause                     3.2                 80d28bedfe5d 
 > 命令
 
 ```shell
-docker push 192.168.3.31/k8s/kube-proxy:v1.20.2 
-docker push 192.168.3.31/k8s/kube-apiserver:v1.20.2
-docker push 192.168.3.31/k8s/kube-controller-manager:v1.20.2
-docker push 192.168.3.31/k8s/kube-scheduler:v1.20.2
-docker push 192.168.3.31/k8s/etcd:3.4.13-0
-docker push 192.168.3.31/k8s/coredns:1.7.0
-docker push 192.168.3.31/k8s/pause:3.2
+docker push 192.168.3.175/k8s/kube-proxy:v1.20.2 
+docker push 192.168.3.175/k8s/kube-apiserver:v1.20.2
+docker push 192.168.3.175/k8s/kube-controller-manager:v1.20.2
+docker push 192.168.3.175/k8s/kube-scheduler:v1.20.2
+docker push 192.168.3.175/k8s/etcd:3.4.13-0
+docker push 192.168.3.175/k8s/coredns:1.7.0
+docker push 192.168.3.175/k8s/pause:3.2
 ```
 
 > 结果
 
 ```shell
-[root@nfs ~]# docker push 192.168.3.31/k8s/kube-proxy:v1.20.2 
- The push refers to repository [192.168.3.31/k8s/kube-proxy]
+[root@nfs ~]# docker push 192.168.3.175/k8s/kube-proxy:v1.20.2 
+ The push refers to repository [192.168.3.175/k8s/kube-proxy]
 ef407ef15d1a: Pushed 
 94812b0f02ce: Pushed 
 3a90582021f9: Pushed 
@@ -698,39 +691,39 @@ f6be8a0f65af: Pushed
 6ee930b14c6f: Pushed 
 f00bc8568f7b: Pushed 
 v1.20.2: digest: sha256:f2a1f300c59ccc3df561b0007ac1fdc9f4687b454df03989553c073ea6b6df46 size: 1786
-[root@nfs ~]# docker push 192.168.3.31/k8s/kube-apiserver:v1.20.2
-The push refers to repository [192.168.3.31/k8s/kube-apiserver]
+[root@nfs ~]# docker push 192.168.3.175/k8s/kube-apiserver:v1.20.2
+The push refers to repository [192.168.3.175/k8s/kube-apiserver]
 d6e7cea784eb: Pushed 
 597f1090d8e9: Pushed 
 e7ee84ae4d13: Pushed 
 v1.20.2: digest: sha256:cfdd1ff3c1ba828f91603f0c41e06c8d29b774104d12be2d99e909672db009dd size: 949
-[root@nfs ~]# docker push 192.168.3.31/k8s/kube-controller-manager:v1.20.2
-The push refers to repository [192.168.3.31/k8s/kube-controller-manager]
+[root@nfs ~]# docker push 192.168.3.175/k8s/kube-controller-manager:v1.20.2
+The push refers to repository [192.168.3.175/k8s/kube-controller-manager]
 6b234140c871: Pushed 
 597f1090d8e9: Mounted from k8s/kube-apiserver 
 e7ee84ae4d13: Mounted from k8s/kube-apiserver 
 v1.20.2: digest: sha256:e775e008586b75bd23bf6505b630f228d0b1ec25e917c8c70f1c9df325465834 size: 949
-[root@nfs ~]# docker push 192.168.3.31/k8s/kube-scheduler:v1.20.2
-The push refers to repository [192.168.3.31/k8s/kube-scheduler]
+[root@nfs ~]# docker push 192.168.3.175/k8s/kube-scheduler:v1.20.2
+The push refers to repository [192.168.3.175/k8s/kube-scheduler]
 8a528c19c520: Pushed 
 597f1090d8e9: Mounted from k8s/kube-controller-manager 
 e7ee84ae4d13: Mounted from k8s/kube-controller-manager 
 v1.20.2: digest: sha256:52d82eca6fcc0b2b555f8c8cc4d4c1752d9114698f8f868948842ac9d19e0d26 size: 949
-[root@nfs ~]# docker push 192.168.3.31/k8s/etcd:3.4.13-0
-The push refers to repository [192.168.3.31/k8s/etcd]
+[root@nfs ~]# docker push 192.168.3.175/k8s/etcd:3.4.13-0
+The push refers to repository [192.168.3.175/k8s/etcd]
 bb63b9467928: Pushed 
 bfa5849f3d09: Pushed 
 1a4e46412eb0: Pushed 
 d61c79b29299: Pushed 
 d72a74c56330: Pushed 
 3.4.13-0: digest: sha256:bd4d2c9a19be8a492bc79df53eee199fd04b415e9993eb69f7718052602a147a size: 1372
-[root@nfs ~]# docker push 192.168.3.31/k8s/coredns:1.7.0
-The push refers to repository [192.168.3.31/k8s/coredns]
+[root@nfs ~]# docker push 192.168.3.175/k8s/coredns:1.7.0
+The push refers to repository [192.168.3.175/k8s/coredns]
 96d17b0b58a7: Pushed 
 225df95e717c: Pushed 
 1.7.0: digest: sha256:242d440e3192ffbcecd40e9536891f4d9be46a650363f3a004497c2070f96f5a size: 739
-[root@nfs ~]# docker push 192.168.3.31/k8s/pause:3.2
-The push refers to repository [192.168.3.31/k8s/pause]
+[root@nfs ~]# docker push 192.168.3.175/k8s/pause:3.2
+The push refers to repository [192.168.3.175/k8s/pause]
 ba0dae6243cc: Pushed 
 3.2: digest: sha256:4a1c4b21597c1b4415bdbecb28a3296c6b5e23ca4f9feeb599860a1dac6a0108 size: 526
 ```
@@ -746,15 +739,15 @@ ba0dae6243cc: Pushed
 #### 1、上传证书至服务器上
 
 ```shell
-[root@master ~]#  scp -r root@192.168.3.31:/etc/docker/certs.d /etc/docker/certs.d
-The authenticity of host '192.168.3.31 (192.168.3.31)' can't be established.
+[root@master ~]#  scp -r root@192.168.3.175:/etc/docker/certs.d /etc/docker/certs.d
+The authenticity of host '192.168.3.175 (192.168.3.175)' can't be established.
 ECDSA key fingerprint is SHA256:fkHcTnh/BUzhCvAAKuU9QidLTEXNk6F7Ap8zLUnkCQQ.
 ECDSA key fingerprint is MD5:4d:5f:45:a1:e4:ff:31:c1:6e:63:2a:c1:8f:9e:8d:e5.
 Are you sure you want to continue connecting (yes/no)? yes
-Warning: Permanently added '192.168.3.31' (ECDSA) to the list of known hosts.
-root@192.168.3.31's password: 
-192.168.3.31.cert                                                        100% 2065     2.8MB/s   00:00    
-192.168.3.31.key                                                         100% 3243     3.9MB/s   00:00    
+Warning: Permanently added '192.168.3.175' (ECDSA) to the list of known hosts.
+root@192.168.3.175's password: 
+192.168.3.175.cert                                                        100% 2065     2.8MB/s   00:00    
+192.168.3.175.key                                                         100% 3243     3.9MB/s   00:00    
 ca.crt                                                                  100% 2045     2.6MB/s   00:00
 ```
 
@@ -765,9 +758,9 @@ ca.crt                                                                  100% 204
 [root@master docker]# tree
 .
 ├── certs.d
-│   └── 192.168.3.31
-│       ├── 192.168.3.31.cert
-│       ├── 192.168.3.31.key
+│   └── 192.168.3.175
+│       ├── 192.168.3.175.cert
+│       ├── 192.168.3.175.key
 │       └── ca.crt
 ├── daemon.json
 └── key.json
@@ -784,7 +777,7 @@ systemctl restart docker
 #### 4、登录docker 仓库
 
 ```shell
-[root@master docker]# docker login 192.168.3.31
+[root@master docker]# docker login 192.168.3.175
 Username: admin
 Password: 
 WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
@@ -797,13 +790,13 @@ Login Succeeded
 #### 5、拉取镜像
 
 ```shell
-[root@master docker]# docker pull 192.168.3.31/k8s/kube-apiserver:v1.20.2
+[root@master docker]# docker pull 192.168.3.175/k8s/kube-apiserver:v1.20.2
 v1.20.2: Pulling from k8s/kube-apiserver
 Digest: sha256:cfdd1ff3c1ba828f91603f0c41e06c8d29b774104d12be2d99e909672db009dd
-Status: Downloaded newer image for 192.168.3.31/k8s/kube-apiserver:v1.20.2
-192.168.3.31/k8s/kube-apiserver:v1.20.2
-[root@master docker]# docker images |grep 192.168.3.31
-192.168.3.31/k8s/kube-apiserver                 v1.20.2             a8c2fdb8bf76        2 months ago        122MB
+Status: Downloaded newer image for 192.168.3.175/k8s/kube-apiserver:v1.20.2
+192.168.3.175/k8s/kube-apiserver:v1.20.2
+[root@master docker]# docker images |grep 192.168.3.175
+192.168.3.175/k8s/kube-apiserver                 v1.20.2             a8c2fdb8bf76        2 months ago        122MB
 ```
 
 #### 6、仓库设置私有
@@ -813,13 +806,13 @@ Status: Downloaded newer image for 192.168.3.31/k8s/kube-apiserver:v1.20.2
 - 创建secret
 
 ```shell
-kubectl create secret docker-registry harbor --namespace=infra --docker-server=192.168.3.31 --docker-username=admin --docker-password=Harbor12345
+kubectl create secret docker-registry harbor --namespace=infra --docker-server=192.168.3.175 --docker-username=admin --docker-password=Harbor12345
 ```
 
 > kubectl create secret docker-registry
 >  registry-harbor\      #名称
 >  --namespace=kube-system \ #命名空间
->  --docker-server=192.168.3.31\ #域名或者IP
+>  --docker-server=192.168.3.175\ #域名或者IP
 >  --docker-username=admin\ #用户名
 >  --docker-password=123 #密码
 
@@ -849,11 +842,11 @@ kubectl create secret generic registry-harbor --namespace=jinshan-pro --from-fil
 
 ```conf
 #/etc/containerd/config.toml 文件增加如下
-    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.3.31:80"]
-        endpoint = ["https://192.168.3.31"]
-    [plugins."io.containerd.grpc.v1.cri".registry.configs."192.168.3.31:443".tls]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.3.175:80"]
+        endpoint = ["https://192.168.3.175"]
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."192.168.3.175:443".tls]
         ca_file = "/etc/ssl/certs/server.crt"
-    [plugins."io.containerd.grpc.v1.cri".registry.configs."192.168.3.31".auth]
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."192.168.3.175".auth]
         username = "admin"
         password = "Harbor12345"
 ```
@@ -863,9 +856,9 @@ kubectl create secret generic registry-harbor --namespace=jinshan-pro --from-fil
 ```shell
 [root@master ~]# systemctl restart containerd
 [root@master ~]# yum install -y ca-certificates
-[root@master ~]# scp -r root@192.168.3.31:/etc/docker/certs.d/192.168.3.31/192.168.3.31.crt  /etc/ssl/certs/
+[root@master ~]# scp -r root@192.168.3.175:/etc/docker/certs.d/192.168.3.175/192.168.3.175.crt  /etc/ssl/certs/
 [root@master ~]# update-ca-trust
-[root@master ~]# nerdctl login -u admin 192.168.3.31
+[root@master ~]# nerdctl login -u admin 192.168.3.175
 Enter Password: 
 WARNING: Your password will be stored unencrypted in /root/.docker/config.json.
 Configure a credential helper to remove this warning. See

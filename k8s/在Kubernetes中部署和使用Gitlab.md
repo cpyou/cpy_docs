@@ -23,12 +23,14 @@ Gitlab 是代码仓库，其部署方式有很多，企业级使用是找单独�
 
 ```bash
 mkdir -p /home/shiyanlou/Code/devops/sy-01-2
-cd /homt/shiyanlou/Code/devops/sy-01-2
+cd /home/shiyanlou/Code/devops/sy-01-2
 ```
 
-在第一个实验中，我们已经初始化好 Kubernetes 环境，并且环境自带一个 `local` 存储，也创建好了 `StroageClass`，可以使用 `kubectl get sc` 查看，如下：
+在第一个实验中，我们已经初始化好 Kubernetes 环境，并且环境自带一个 `local` 存储，也创建好了 `StroageClass`，如下：
 
 ```bash
+# 查看local存储
+kubectl get sc
 # NAME                         PROVISIONER        RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
 # openebs-device               openebs.io/local   Delete          WaitForFirstConsumer   false                  18d
 # openebs-hostpath (default)   openebs.io/local   Delete          WaitForFirstConsumer   false                  18d
@@ -60,6 +62,7 @@ spec:
 
 ```shell
 # 创建 PVC
+kubectl create namespace devops
 kubectl apply -f redis-pvc.yaml
 # 查看创建情况 如下表示创建成功
 kubectl get pvc -n devops redis-pvc
