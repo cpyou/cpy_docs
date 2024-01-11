@@ -360,6 +360,10 @@ jenkins-slave
 
 添加容器模板，镜像 `registry.cn-hangzhou.aliyuncs.com/coolops/jenkins:jnlp6` 里有 Jenkins Slave 客户端，也有 docker 和 kubectl 命令，如下：
 
+> 注意：registry.cn-hangzhou.aliyuncs.com/coolops/jenkins:jnlp6 运行不了。
+>
+> 使用：jenkins/inbound-agent:3107.v665000b_51092-15-jdk17 正常，但是没有docker和kubectl 指令
+
 ![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/2b077907c03c01df7cb8b65bde737486-0.png)
 
 其中：
