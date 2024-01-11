@@ -2,9 +2,115 @@ K8s 安装工具
 
 [TOC]
 
+# 实验介绍
+
+本次实验主要带你了解如何在 Kubernetes 中进行应用的部署和访问，主要涉及 Deployment、Service、Ingress 的编写以及如何进行访问。
+
+#### 知识点
+
+- Deployment
+- Service
+- Ingress
+- Ingress Controller
+
+# Kubernetes 环境准备
+
+#### 环境介绍
+
+- Kubernetes: v1.22.12
+- 操作系统：Ubuntu 20.04.4 LTS
+- 节点个数：1 个
+
+# 安装 Kubernetes
+
+按着官方的操作步骤进入实验环境，打开控制台。
+
+（1）准备安装脚本 在 `/home/shiyanlou/Code/` 目录下创建 `sy-01-1` 文件夹，命令如下：
+
+```bash
+mkdir /home/shiyanlou/Code/sy-01-1 -p
+cd /home/shiyanlou/Code/sy-01-1
+```
+
+再在 `/home/shiyanlou/Code/sy-01-1` 目录下创建 `k8s-init.sh` 脚本，输入以下内容：
+
+> kubectl、kubeadm、kubelet 等组件蓝桥云课环境里已安装。
+
+```bash
+#!/bin/bash
+
+sudo kubeadm init  --kubernetes-version=1.22.12 \
+--pod-network-cidr 192.168.0.0/16  \
+--image-repository registry.aliyuncs.com/google_containers
+sudo rm -rf ~/.kube/
+mkdir ~/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+wget -q https://labfile.oss.aliyuncs.com/courses/10022/tigera-operator.yaml
+wget -q https://labfile.oss.aliyuncs.com/courses/10022/custom-resources.yaml
+kubectl create -f tigera-operator.yaml
+kubectl create -f custom-resources.yaml
+kubectl taint node k8s-master node-role.kubernetes.io/master-
+```
+
+> 执行此脚本可能会因为拉取 calico 相关的镜像超时而初始化失败，遇到此情况，可以先执行下列命令拉取我们托管的相关镜像。
+
+```bash
+# 拉取镜像
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/typha:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/pod2daemon-flexvol:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/node:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/csi:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/cni:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/apiserver:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/kube-controllers:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/node-driver-registrar:v3.24.0
+docker pull registry.cn-hangzhou.aliyuncs.com/mandysa/pod2daemon-flexvol:v3.24.0
+# 修改 Tag
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/typha:v3.24.0 calico/typha:v3.24.0
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/pod2daemon-flexvol:v3.24.0 calico/pod2daemon-flexvol:v3.24.0
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/node:v3.24.0 calico/node:v3.24.0
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/csi:v3.24.0 calico/csi:v3.24.0
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/cni:v3.24.0 calico/cni:v3.24.0
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/apiserver:v3.24.0 calico/apiserver:v3.24.0
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/kube-controllers:v3.24.0 calico/kube-controllers:v3.24.0
+docker tag registry.cn-hangzhou.aliyuncs.com/mandysa/node-driver-registrar:v3.24.0 calico/node-driver-registrar:v3.24.0
+# 删除多余镜像 Tag
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/typha:v3.24.0
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/pod2daemon-flexvol:v3.24.0
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/node:v3.24.0
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/csi:v3.24.0
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/cni:v3.24.0
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/apiserver:v3.24.0
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/kube-controllers:v3.24.0
+docker rmi registry.cn-hangzhou.aliyuncs.com/mandysa/node-driver-registrar:v3.24.0
+```
+
+然后直接使用 `bash k8s-init.sh` 命令执行安装。如果输出以下信息表示安装成功：
 
 
-# 安装OpenEBS
+
+使用 `kubectl get pod -A` 查看 Pod 启动情况，如果全变为 `running` 则表示集群初始化工作已经完成。
+
+> 此过程耗时较久，请耐心等待。
+
+集群启动完成后，可以使用 `kubectl get node` 查看集群信息，如下：
+
+还可以使用 `kubectl get node -o wide` 查看更详细的节点信息。
+
+> PS: 这里记住节点的 IP 信息，也就是 INTERNAL-IP 列中的 IP 地址，只需要记住一个即可，当然如果忘记了，可以再次使用上面命令获取即可。
+
+
+
+# 安装持久化存储
+
+安装完集群后，我们需要安装持久化存储，用来将有状态应用的数据进行持久化。
+
+存储的选择很多，可以是 Ceph、NFS、GlusterFS 等，不过由于这里是单台服务器搭建的 Kubernetes 集群，就直接使用 Local 存储了。
+
+为了方便，这里采用 [OpenEBS](https://github.com/openebs/openebs) 来管理本地存储。使用如下命令在 Kubernetes 安装即可。
+
+## 安装OpenEBS
 
 ```shell
 kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
@@ -155,6 +261,8 @@ spec:
       port: 80
 ```
 
+# 开发 Ingress
+
 上面介绍的 Service 主要用在集群内部，当然 NodePort 和 LoadBalancer 类型也可以用于外部访问，但是它们也有一定的弊端：
 
 - 如果使用 NodePort 类型，需要维护好每个应用的端口地址，如果服务太多就不好管理
@@ -163,11 +271,13 @@ spec:
 
 因此，社区提供了 Ingress 对象，为集群提供统一的入口，逻辑如下：
 
-![c80ebde4db1520210144d14708fd74b7-0](/Users/cpy/cpy_code/cpy_docs/k8s/k8s应用.assets/c80ebde4db1520210144d14708fd74b7-0.jpg)
+![c80ebde4db1520210144d14708fd74b7-0](/Users/cpy/cpy_code/cpy_docs/k8s/1-使用kubeadm初始 K8s.assets/c80ebde4db1520210144d14708fd74b7-0.jpg)
 
 其中 Ingress 代理的并不是 Pod 的 Service，而是 Pod，之所以在配置的时候是配置的 Service，是为了获取 Pod 的信息。
 
 如果要使用 Ingress，必须安装 Ingress Controller。我们这里以 `Nginx ingress controller` 为例。
+
+## 安装 Nginx ingress controller
 
 ```shell
 # 安装 Nginx ingress controller
