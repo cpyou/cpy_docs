@@ -304,7 +304,7 @@ kubectl get svc -n devops jenkins
 
 为此，在 Kubernetes 中，我们采用动态 Slave 的模式，这种模式只有在运行流水线的时候才创建 Slave，流水线运行完成就把 Slave 干掉，逻辑图如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/afd88bc2eef96ab40ad925b315b0cbb8-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/afd88bc2eef96ab40ad925b315b0cbb8-0.png)
 
 使用这种方式有以下优点：
 
@@ -316,27 +316,27 @@ kubectl get svc -n devops jenkins
 
 选择 **系统管理** -> **插件管理** -> **可选插件**，搜索 `kubernetes`，选择插件点击安装，如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/1822f94f44592273c971eff1914fc605-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/1822f94f44592273c971eff1914fc605-0.png)
 
 等待其安装并重启完成。
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/b1dc625b59302f53e9e0a88dced93440-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/b1dc625b59302f53e9e0a88dced93440-0.png)
 
 #### 配置 Kubernetes 插件
 
 选择 **系统管理** -> **节点管理** -> **Configure Clouds**，配置集群中选择 `kubernetes`，如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/5664c936face3a109eeb69ce9c6fdbea-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/5664c936face3a109eeb69ce9c6fdbea-0.png)
 
 然后配置 Kubernetes 地址（内部地址）和 Slave 运行的名称空间，如下：
 
 https://kubernetes.default.svc.cluster.local
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/f80f1bbe5c4993f09c13f8b17ab59164-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/f80f1bbe5c4993f09c13f8b17ab59164-0.png)
 
 点击 **连接测试**，查看 Jenkins 和 Kubernetes 集群的通信状态，当结果为 `Connected to Kubernetes xxx` 表示连通性正常，如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/b7b5230bd191261e7e376bebcd582cc0-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/b7b5230bd191261e7e376bebcd582cc0-0.png)
 
 > PS：如果连接测试失败，很可能是权限问题，我们就需要把 ServiceAccount 的凭证 jenkins-sa 添加进来。
 
@@ -344,19 +344,19 @@ https://kubernetes.default.svc.cluster.local
 
 http://jenkins.devops.svc.cluster.local:8080
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/aeeabd00c6d1e22100e17f6653db46c0-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/aeeabd00c6d1e22100e17f6653db46c0-0.png)
 
 选择 `Pod Templates`，添加 Slave Pod 模板，如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/image-20240110225059002-4898261.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/image-20240110225059002-4898261.png)
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/815e1cb0470831adb8c17a0278ad1293-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/815e1cb0470831adb8c17a0278ad1293-0.png)
 
 选择 **添加模板**，按需配置，如下：
 
 jenkins-slave
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/42edc650f606d8af602322930a4164b5-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/42edc650f606d8af602322930a4164b5-0.png)
 
 添加容器模板，镜像 `registry.cn-hangzhou.aliyuncs.com/coolops/jenkins:jnlp6` 里有 Jenkins Slave 客户端，也有 docker 和 kubectl 命令，如下：
 
@@ -364,7 +364,7 @@ jenkins-slave
 >
 > 使用：jenkins/inbound-agent:3107.v665000b_51092-15-jdk17 正常，但是没有docker和kubectl 指令
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/2b077907c03c01df7cb8b65bde737486-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/2b077907c03c01df7cb8b65bde737486-0.png)
 
 其中：
 
@@ -378,11 +378,11 @@ jenkins-slave
 
 如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/eb62cb64ef9a82a18f014680807bcf17-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/eb62cb64ef9a82a18f014680807bcf17-0.png)
 
 最后添加 `Service Account`，为执行操作 Kubernetes 提供权限，如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/72296173e053d07a3195e1c2f307ed81-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/72296173e053d07a3195e1c2f307ed81-0.png)
 
 点击 `保存`，即完成 Kubernetes 插件配置。
 
@@ -390,13 +390,13 @@ jenkins-slave
 
 回到 Dashboard，选择 **新建任务**，输入 `test-kubernetes-slave`，如下：
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/0faac551da5cf1598e42f0e4c03053c0-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/0faac551da5cf1598e42f0e4c03053c0-0.png)
 
 选择节点标签，也就是在 Kubernetes 插件中配置的 Label，如下：
 
 jenkins-jnlp
 
-![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用 Jenkins.assets/9838bbb94a31322ce4e9eb4c31b59cc3-0.png)
+![图片描述](/Users/cpy/cpy_code/cpy_docs/k8s/5-在Kubernetes中部署和使用Jenkins.assets/9838bbb94a31322ce4e9eb4c31b59cc3-0.png)
 
 在 **构建** 步骤中，选择 **执行 Shell**，在文本中输入以下内容：
 
