@@ -28,6 +28,14 @@ kubectl get svc -n monitoring;
 
 
 
+```shell
+# no matches for kind "PodDisruptionBudget" in version "policy/v1"
+# 修改apiVersion: policy/v1 为 apiVersion: policy/v1beta1
+
+```
+
+
+
 Alertmanager: http://192.168.3.125:31400
 Prometheus: http://192.168.3.125:31200/
 Grafana: http://192.168.3.125:31100/
