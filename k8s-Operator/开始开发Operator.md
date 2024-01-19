@@ -4,10 +4,16 @@
 
 ```shell
 curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)
+
+# macos
+# curl -L -o kubebuilder https://github.com/kubernetes-sigs/kubebuilder/releases/download/v3.13.0/kubebuilder_darwin_arm64
+# curl -L -o kubebuilder https://github.com/kubernetes-sigs/kubebuilder/releases/download/v3.13.0/kubebuilder_darwin_amd64
 # 
 chmod +x kubebuilder
 sudo mv kubebuilder /usr/local/bin/
 kubebuilder version
+
+
 ```
 
 https://github.com/kubernetes-sigs/kubebuilder/releases

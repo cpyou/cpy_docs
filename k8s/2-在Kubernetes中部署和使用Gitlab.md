@@ -1,5 +1,9 @@
 # 在Kubernetes中部署和使用Gitlab
 
+[TOC]
+
+
+
 ## 实验介绍
 
 Gitlab 是代码仓库，其部署方式有很多，企业级使用是找单独的机器部署管理，这里为了实验方便，将演示如何在 Kubernetes 中部署 Gitlab，其组件主要涉及 Redis、PostgreSQL 和 Gitlab，并且会演示如何将代码仓库进行持久化。
@@ -545,5 +549,7 @@ kubectl describe svc -n devops gitlab
 ## 登录
 
 上面已经把 Gitlab 部署完成了，我们这里直接使用 `NodeIP:NodePort` 进行访问，之所以没有用 Ingress，主要是为了方便后面的实验。NodeIP 可以通过 `kubectl get node -o wide` 获取，NodePort 是自己配置的端口 `30180`，在浏览器输入 `http://192.168.3.125:30180` 进行访问即可。
+
+http://192.168.3.125:30180
 
 然后输入用户名/密码： `root/admin321` 登录 Gitlab
