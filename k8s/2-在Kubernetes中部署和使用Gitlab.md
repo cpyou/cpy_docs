@@ -4,11 +4,11 @@
 
 
 
-## 实验介绍
+# 实验介绍
 
 Gitlab 是代码仓库，其部署方式有很多，企业级使用是找单独的机器部署管理，这里为了实验方便，将演示如何在 Kubernetes 中部署 Gitlab，其组件主要涉及 Redis、PostgreSQL 和 Gitlab，并且会演示如何将代码仓库进行持久化。
 
-#### 知识点
+**知识点**
 
 - PV 创建
 - Redis 部署
@@ -17,7 +17,7 @@ Gitlab 是代码仓库，其部署方式有很多，企业级使用是找单独�
 - Deployment 开发
 - Service 使用
 
-## 前置准备
+# 前置准备
 
 - 有可用的 Kubernetes 集群
 - Kubernetes 有持久化存储
@@ -39,6 +39,8 @@ kubectl get sc
 # openebs-device               openebs.io/local   Delete          WaitForFirstConsumer   false                  18d
 # openebs-hostpath (default)   openebs.io/local   Delete          WaitForFirstConsumer   false                  18d
 ```
+
+# 部署redis
 
 ## 创建 Redis 持久化存储
 
@@ -195,7 +197,7 @@ kubectl describe svc -n devops redis
 # 至此，Redis 部署完成。
 ```
 
-## 部署 PostgreSQL
+# 部署 PostgreSQL
 
 PostgreSQL 是 Gitlab 的默认数据库，保存除 Repo、wiki 以及 ssh key 之外的所有数据，包括账户信息、配置、issue 等。所以它在 Gitlab 的体系中占据很重要的地位。
 
@@ -357,6 +359,8 @@ kubectl describe svc -n devops postgresql
 # Events:            <none>
 ```
 
+# 部署Gitlab
+
 ## 创建 Gitlab 持久化存储
 
 在 `~/Code/devops/sy-01-2` 目录下创建一个 `gitlab-pvc.yaml` 文件，并写入以下内容：
@@ -430,7 +434,7 @@ spec:
             - name: GITLAB_ROOT_EMAIL
               value: devops@163.com
             - name: GITLAB_HOST
-              value: 10.111.127.141
+              value: 192.168.3.125
             - name: GITLAB_PORT
               value: "30180"
             - name: GITLAB_SSH_PORT
@@ -546,6 +550,8 @@ kubectl get svc -n devops gitlab
 kubectl describe svc -n devops gitlab
 ```
 
+# 使用 Gitlab
+
 ## 登录
 
 上面已经把 Gitlab 部署完成了，我们这里直接使用 `NodeIP:NodePort` 进行访问，之所以没有用 Ingress，主要是为了方便后面的实验。NodeIP 可以通过 `kubectl get node -o wide` 获取，NodePort 是自己配置的端口 `30180`，在浏览器输入 `http://192.168.3.125:30180` 进行访问即可。
@@ -553,3 +559,73 @@ kubectl describe svc -n devops gitlab
 http://192.168.3.125:30180
 
 然后输入用户名/密码： `root/admin321` 登录 Gitlab
+
+## 创建用户
+
+在生产环境里使用，为了防止单账户权限过高造成的安全问题，很少直接使用超管账户，基本都会创建一些子账户。
+
+比如在这里我们创建一个 dev 账户来使用。点击 Admin Area，选择 `New user`，
+
+## 修改密码
+
+如果配置好邮箱发送信息，会给您发邮件配置密码，不过，由于这里没有配置邮箱信息，我们手动修改密码。
+
+首先通过 `Admin Area - Users` 进入用户管理界面，找到对应的用户，选择 `Edit` 进行修改，如下：
+
+然后输入要更改的密码，比如我这里输入的是 `dev@123456`，如下：
+
+> PS: 默认情况下，Gitlab 要求密码强度大于 8 位。
+
+最后拉到最下方，点击 `Save changes`，即完成密码修改。
+
+## 创建项目
+
+(1) 在 Gitlab 上创建新项目，在首页选择 `Create a project`，如下：
+
+然后根据实际情况填写信息，最后点击 `Create project` 创建项目即可，如下：
+
+这种创建方式默认会把项目直接创建在当前用户下，而在生产级别，公司应用是不会放到个人用户下，所以我们会先创建 Group，如下：
+
+填写组名 `devops`，点击创建即可，如下：
+
+然后再在组里创建项目，具体步骤和上面一样。
+
+## 用户授权
+
+用户创建过后，只有当前账户下的项目管理权限，如果要管理其他项目或者组，就要进行授权。
+
+#### 授权给组权限
+
+首先，进入我们创建的组 `devops`，然后选择左边的 member，如下：
+
+然后添加用户、配置权限、添加到组，如下：
+
+这样 `dev` 用户就拥有 `devops` 组的 `Developer` 权限。
+
+#### 授权给某个项目
+
+有时候只想给用户授权某个项目的权限，直接进入项目，比如我这里进入 hello-word 项目，然后在设置里选择 member，如下：
+
+然后选择 用户、设置权限、添加到项目即可，如下：
+
+## 导入项目
+
+上面介绍的都是自己创建项目，而在整个实验中，为了方便，会先把代码准备好，我们可以直接导入即可。
+
+为此，我准备了一个 Go 项目，后续的流水线都是基于该项目进行，项目地址是：`https://gitee.com/coolops/go-hello-world.git`。
+
+下面我们将该项目导入到 Gitlab 中。
+
+首先在 Gitlab 上创建项目，然后选择 Import project。如下：
+
+然后选择代码源，我这里是 gitee 上的代码，所以选择 `repo by url`,填写对应的信息，如下：
+
+点击导入按钮，等待一段时间，即可完成项目导入。
+
+Gitlab 的使用操作就介绍到这里，更多的功能需要自己去挖掘，目前介绍的功能足够我们完成本课程的后续实验了。
+
+# 实验总结
+
+Gitlab 项目的整个部署包括 Redis、PostgreSQL、Gitlab 三个主要的组件，每个组件的部署过程差不多，都是创建存储卷 PVC，然后使用 Deployment 进行部署服务，最后使用 Service 进行应用访问，当然在正式环境中，如果要把有状态的服务部署到 Kubernetes 中，建议使用 StatefulSet 或者 Operator 的方式部署，这样才能更好的管理有状态应用。
+
+Gitlab 是代码仓库，会保存我们整个实验的源代码，包括应用代码，YAML 清单等。所以请记住其地址以及用户名密码，后面是时常使用到。
