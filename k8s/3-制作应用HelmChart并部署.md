@@ -1,6 +1,6 @@
 Helm 使用
 
-
+[TOC]
 
 当项目比较少的时候，这样管理很方便，如果项目比较多或者有些项目比较复杂，会有很多的资源描述文件，例如微服务架构应用，组成应用的服务可能多达十个，几十个。如果有更新或回滚应用的需求，可能要修改和维护所涉及的大量资源文件，而这种组织和管理应用的方式就显得力不从心了。
 
@@ -58,7 +58,7 @@ Helm Chart 包可以保存到本地的 Gitlab 仓库，这种方式可以直接�
 - 阿里云仓库：`https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts`
 - 官方仓库：`https://hub.kubeapps.com/charts/incubator`
 
-# 添加仓库
+## 添加仓库
 
 添加仓库用 `helm repo add` 命令，如下：
 
@@ -76,10 +76,16 @@ helm repo update
 # ...Successfully got an update from the "stable" chart repository
 # Update Complete. ⎈Happy Helming!⎈
 
-# 删除仓库
-helm repo remove aliyun
+
 
 ```
+
+## 删除仓库
+```shell
+helm repo remove aliyun
+```
+
+
 
 # 制作 Helm Chart
 
@@ -182,6 +188,46 @@ tree go-hello-world/
 
 到此，Helm Chart 修改完成，可以将其保存到代码仓库 `go-hello-world` 项目下。
 
+首先使用 `git clone` 把 `go-hello-world` 拉取到 `/home/shiyanlou/Code` 目录下，命令如下：
+
+```bash
+cd /home/shiyanlou/Code
+# git clone http://10.111.127.141:30180/devops/go-hello-world.git
+git clone http://192.168.3.125:30180/devops/go-hello-world.git
+```
+
+> PS：代码地址根据自己实际情况填写。
+
+然后在代码目录中创建 `deploy/charts` 文件夹，把上面制作好的 Helm Chart 拷贝到代码目录中，命令如下：
+
+```bash
+cd /home/shiyanlou/Code/go-hello-world
+mkdir deploy/charts -p
+cd deploy/charts
+cp -r ~/Code/devops/sy-01-3/go-hello-world/* .
+```
+
+此时就把 Helm Chart 拷贝到代码目录中了，我们再把代码推送到远程仓库中，命令如下：
+
+```bash
+cd /home/shiyanlou/Code/go-hello-world
+git config --global user.email "joker@devops.com"
+git config --global user.name "joker"
+git add .
+git commit -m "add deploy helm chart"
+git push
+```
+
+> PS: 不管是推送还是拉取代码，都需要输入用户名和密码
+
+然后就可以在代码仓库里看到新增的 Helm Chart 了。
+
+# 应用管理
+
+上面已经将应用的 Helm Chart 制作好了，下面就准备将其部署到 Kubernetes 中。由于这里还没有对 `go-hello-world` 应用进行编译打包，所以依然以 `nginx` 应用为例进行实验。
+
+## 部署应用
+
 使用 Helm 部署应用非常简单，直接使用 `helm install` 即可，而且其可以跟不同的参数，如果不知道怎么使用，可以用 `helm install -h` 查看帮助文档。
 
 下面我们部署 Nginx 服务，版本是 1.8，命令如下：
@@ -209,6 +255,8 @@ helm list
 # nginx	default  	1       	2023-11-15 09:25:52.377329307 -0500 EST	deployed	go-hello-world-0.1.0	1.16.0
 ```
 
+## 更新应用
+
 如果应用进行了迭代，现在要更新到新的版本，比如我们要更新到 Nginx 1.9 版本，则使用以下命令：
 
 ```bash
@@ -223,14 +271,43 @@ helm list
 # nginx	default  	2       	2023-11-15 09:30:40.616751666 -0500 EST	deployed	go-hello-world-0.1.0	1.16.0
 # 看到版本号 REVISION 变成了 2
 
+
+
+```
+
+
+
+## 回滚应用
+
+```
 # 直接回滚到上一个版本
 helm rollback nginx
 # 回滚到指定的版本
 helm rollback nginx 1
 # 查看历史版本 helm history RELEASE_NAME 
 helm history nginx 
+
+```
+
+## 删除应用
+
+```
 # 卸载应用
 helm uninstall nginx
 ```
 
+# 实验总结
+
+本次实验的目的是带大家了解并使用 Helm，通过这次实验，我们可以从 0 到 1 开发 Helm Chart，然后将其部署到 Kubernetes 中。在企业中，Helm 可以很方便的管理应用，不同类型的应用都可以制作成一个 Chart，这样可以降低运维重复性的工作，让我们有更多的时间做其他事情。
+
+我们再来回滚整个实验的内容：
+
+- 先安装 Helm 客户端
+- 使用 `helm create` 创建 Charts 模板，然后根据自己需求进行定制修改
+- 使用 `helm install` 安装应用
+- 使用 `helm upgrade` 更新应用
+- 使用 `helm rollback` 回滚应用
+- 使用 `helm uninstall` 卸载应用
+
 当然，Helm 可以很简单，也可以很复杂，如果对它不是很了解，可以到官网 `https://helm.sh` 进行进一步的学习
+

@@ -268,7 +268,7 @@ CMD [ "go-hello-world" ]
 然后就可以使用以下命令进行镜像构建：
 
 ```bash
-docker build -t 10.111.127.141:30002/dev/go-hello-world:v0.0.1 .
+docker build -t 192.168.3.175/dev/go-hello-world:v0.0.1 .
 ```
 
 输出如下：
@@ -278,7 +278,7 @@ docker build -t 10.111.127.141:30002/dev/go-hello-world:v0.0.1 .
 将镜像推送到 Harbor 仓库，命令如下：
 
 ```bash
-docker push 10.111.127.141:30002/dev/go-hello-world:v0.0.1
+docker push 192.168.3.175/dev/go-hello-world:v0.0.1
 ```
 
 # 在 Kubernetes 中部署应用
@@ -291,7 +291,7 @@ docker push 10.111.127.141:30002/dev/go-hello-world:v0.0.1
 
 ```bash
 cd deploy/charts
-helm install go-hello-world --set image.repository=10.111.127.141:30002/dev/go-hello-world --set image.tag=v0.0.1 --set containers.port=8080 --set containers.healthCheak.path=/health .
+helm install go-hello-world --set image.repository=192.168.3.175/dev/go-hello-world --set image.tag=v0.0.1 --set containers.port=8080 --set containers.healthCheak.path=/health .
 ```
 
 然后使用 `kubectl get pod` 查看应用状态，如下：

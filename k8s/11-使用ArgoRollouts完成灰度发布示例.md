@@ -1,5 +1,7 @@
 # 使用argo rollouts 完成灰度发布示例
 
+[TOC]
+
 ## 实验介绍
 
 灰度发布是企业选择比较多的版本发布方式，它可以尽可能的保证线上服务的稳定性，本次实验就是带大家了解什么是灰度发布以及如何使用 Argo rollouts 实现灰度发布。
@@ -15,7 +17,7 @@
 
 在企业中，很多公司都会采用灰度发布的方式进行版本更新，其原理是在生产环境同时有 A 和 B 两个版本，其中 A 是老版本，B 是新版本，让一部分用户继续使用 A，让少部分用户来使用 B，如果这少部分用户没有反馈什么问题，就慢慢增大访问 B 的数量直至所有用户都使用 B。
 
-![08e1618e32194dc86de421bd7db9b2f5-0](./使用ArgoRollouts完成灰度发布示例.assets/08e1618e32194dc86de421bd7db9b2f5-0-1093308.jpg)
+![08e1618e32194dc86de421bd7db9b2f5-0](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/08e1618e32194dc86de421bd7db9b2f5-0-1093308.jpg)
 
 使用灰度发布的主要作用如下：
 
@@ -67,7 +69,7 @@ sudo mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
 kubectl argo rollouts version
 ```
 
-![image-20231127215826574](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127215826574-1093519-1093521.png)
+![image-20231127215826574](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127215826574-1093519-1093521.png)
 
 到此安装步骤完成。
 
@@ -158,11 +160,11 @@ spec:
 
 然后使用 `kubectl apply -f rollout.yaml` 和 `kubectk apply -f service.yaml` 创建应用，执行过后会在 `default` 名称空间下创建 5 个 `rollout-demo` 的 Pod，如下
 
-![image-20231127220122101](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220122101.png)
+![image-20231127220122101](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220122101.png)
 
 待 Pod 都 `Running` 的时候使用 `kubectl argo rollouts get rollout rollouts-demo` 来查看 rollouts 应用状态：
 
-![image-20231127220155799](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220155799.png)
+![image-20231127220155799](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220155799.png)
 
 可以看到该版本被标记为 stable，而且 STATUS 为 healthy。还可以在命令后面加一个--watch 来实时监控服务状态，完整命令为 `kubectl argo rollouts get rollout rollouts-demo --watch`。
 
@@ -174,7 +176,7 @@ spec:
 
 在监听终端可以看到如下信息：
 
-![image-20231127220226062](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220226062.png)
+![image-20231127220226062](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220226062.png)
 
 多了一个 revision:2，而且该版本被标记为 canary，而且状态是 Status: Paused，canary 接入流量为 20%。
 
@@ -188,11 +190,11 @@ kubectl argo rollouts promote rollouts-demo
 
 执行过后，在监听终端可以看到不断有 canary 应用被部署，如下：
 
-![image-20231127220301379](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220301379.png)
+![image-20231127220301379](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220301379.png)
 
 当所有 canary 版本更新完成后，会从 `canary` 版本变成 `stable` 版本，如下：
 
-![image-20231127220336111](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220336111.png)
+![image-20231127220336111](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220336111.png)
 
 #### 终止更新
 
@@ -206,7 +208,7 @@ kubectl argo rollouts set image rollouts-demo rollouts-demo=argoproj/rollouts-de
 
 在监听终端看到应用已经更新部分，如下：
 
-![image-20231127220409624](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220409624.png)
+![image-20231127220409624](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220409624.png)
 
 如果这时候不想发布了，可以使用如下命令来终止发布：
 
@@ -216,7 +218,7 @@ kubectl argo rollouts abort rollouts-demo
 
 命令执行过后，在监听终端可以看到应用已经终止，回归到原有状态，如下：
 
-![image-20231127220445863](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220445863.png)
+![image-20231127220445863](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220445863.png)
 
 但是状态并不是 `Healthy`，而是 `Degraded`。如果要将其变成 `Healthy`，则需要执行一下镜像更新命令，如下：
 
@@ -236,7 +238,7 @@ kubectl-argo-rollouts undo  rollouts-demo --to-revision=1
 
 然后在监听终端可以看到应用正在进行回滚，如下：
 
-![image-20231127220515830](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220515830.png)
+![image-20231127220515830](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220515830.png)
 
 再使用以下命令完成最终的回滚：
 
@@ -246,7 +248,7 @@ kubectl argo rollouts promote rollouts-demo
 
 最终应用镜像从 `yellow` 变成 `blue`，如下：
 
-![image-20231127220543939](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127220543939.png)
+![image-20231127220543939](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127220543939.png)
 
 测试完成后删除该应用，命令如下：
 
@@ -468,7 +470,7 @@ status:
 
 然后使用 `http://rollouts-demo.devops.com:30080` 访问，如下：
 
-![image-20231127222110762](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127222110762.png)
+![image-20231127222110762](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127222110762.png)
 
 #### 更新服务
 
@@ -480,19 +482,19 @@ kubectl argo rollouts set image rollouts-demo rollouts-demo=argoproj/rollouts-de
 
 部署后，使用 `kubectl-argo-rollouts get rollout rollouts-demo` 来查看部署状态，如下：
 
-![image-20231127222723991](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127222723991.png)
+![image-20231127222723991](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127222723991.png)
 
 然后使用 `kubectl get ingress rollouts-demo-rollouts-demo-stable-canary -o yaml | more` 可以看到 annotations 中 `nginx.ingress.kubernetes.io/canary-weight` 的值已经变成 20，如下：
 
-![image-20231127222759307](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127222759307.png)
+![image-20231127222759307](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127222759307.png)
 
 在 `http://rollouts-demo.devops.com:30080` 页面也能看到 `yellow` 的服务已经使用了，如下：
 
-![image-20231127222828981](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127222828981.png)
+![image-20231127222828981](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127222828981.png)
 
 再使用 `kubectl argo rollouts promote rollouts-demo` 继续更新服务，可以在 `http://rollouts-demo.devops.com:30080` 页面发现 `yellow` 替换完成，最终所有流量都走 `yellow`：
 
-![image-20231127222859892](./使用ArgoRollouts完成灰度发布示例.assets/image-20231127222859892.png)
+![image-20231127222859892](/Users/cpy/cpy_code/cpy_docs/k8s/11-使用ArgoRollouts完成灰度发布示例.assets/image-20231127222859892.png)
 
 当 `canary` 版本变成 `stable` 版本过后，会接收所有的流量，`rollouts-demo-rollouts-demo-stable-canary` ingress 中的 `nginx.ingress.kubernetes.io/canary-weight` 又会重新变成 0。
 

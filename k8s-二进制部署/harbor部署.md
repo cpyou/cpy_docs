@@ -2,6 +2,8 @@
 
 https://www.jianshu.com/p/7de86bd87226
 
+[TOC]
+
 
 
 ## 准备工作
@@ -39,11 +41,11 @@ https://www.jianshu.com/p/7de86bd87226
 
 > 以下过程假定您的Harbor注册表的主机名是`yourdomain.com`，并且其DNS记录指向您在其上运行Harbor的主机。
 
-#### 1、生成证书颁发机构证书
+### 1、生成证书颁发机构证书
 
 在生产环境中，您应该从CA获得证书。 在测试或开发环境中，您可以生成自己的CA。 要生成CA证书，请运行以下命令。
 
-###### 1.1 生成CA证书私钥。
+#### 1.1 生成CA证书私钥。
 
 ```shell
 mkdir harbor
@@ -51,7 +53,7 @@ cd habor
 openssl genrsa -out ca.key 4096
 ```
 
-###### 1.2 生成CA证书。
+#### 1.2 生成CA证书。
 
 调整`-subj`选项中的值以反映您的组织。 如果使用FQDN连接Harbor主机，则必须将其指定为公用名（CN）属性。
 
@@ -77,11 +79,11 @@ openssl req -x509 -new -nodes -sha512 -days 3650 \
 
 ```
 
-#### 2、生成服务器证书
+### 2、生成服务器证书
 
 证书通常包含一个`.crt`文件和一个`.key`文件，例如`yourdomain.com.crt`和`yourdomain.com.key`。
 
-###### 2.1 生成私钥
+#### 2.1 生成私钥
 
 
 
@@ -97,7 +99,7 @@ openssl genrsa -out yourdomain.com.key 4096
 openssl genrsa -out 192.168.3.175.key 4096
 ```
 
-###### 2.2 生成证书签名请求（CSR）
+#### 2.2 生成证书签名请求（CSR）
 
 调整`-subj`选项中的值以反映您的组织。如果使用FQDN连接Harbor主机，则必须将其指定为通用名称（CN）属性，并在密钥和CSR文件名中使用它。
 
@@ -121,7 +123,7 @@ openssl req -sha512 -new \
     -out 192.168.3.175.csr
 ```
 
-###### 2.3 生成一个x509 `v3`扩展文件。
+#### 2.3 生成一个x509 `v3`扩展文件。
 
 无论您使用FQDN还是IP地址连接到Harbor主机，都必须创建此文件，以便可以为您的Harbor主机生成符合主题备用名称（SAN）和x509 v3的证书 扩展要求。 替换`DNS`条目以反映您的域。
 
@@ -156,7 +158,7 @@ subjectAltName = IP:192.168.3.175
 EOF
 ```
 
-###### 2.4 使用该`v3.ext`文件为您的Harbor主机生成证书。
+#### 2.4 使用该`v3.ext`文件为您的Harbor主机生成证书。
 
 将yourdomain.comCRS和CRT文件名中的替换为Harbor主机名。
 
@@ -187,11 +189,11 @@ openssl x509 -req -sha512 -days 3650 \
 
 
 
-#### 3、提供证书给Harbor和Docker
+### 3、提供证书给Harbor和Docker
 
 生成后`ca.crt`，`yourdomain.com.crt`和`yourdomain.com.key`文件，必须将它们提供给Harbor和Docker，和重新配置港使用它们。
 
-###### 3.1、将服务器证书和密钥复制到Harbor主机上的certficates文件夹中。
+#### 3.1、将服务器证书和密钥复制到Harbor主机上的certficates文件夹中。
 
 ```shell
 mkdir -p /data/cert/
@@ -207,7 +209,7 @@ cp 192.168.3.175.crt /data/cert/
 cp 192.168.3.175.key /data/cert/
 ```
 
-###### 3.2、转换yourdomain.com.crt为yourdomain.com.cert，供Docker使用。
+#### 3.2、转换yourdomain.com.crt为yourdomain.com.cert，供Docker使用。
 
 Docker守护程序将.crt文件解释为CA证书，并将.cert文件解释为客户端证书。
 
@@ -221,7 +223,7 @@ openssl x509 -inform PEM -in 192.168.3.175.crt -out 192.168.3.175.cert
 openssl x509 -inform PEM -in 192.168.3.175.crt -out 192.168.3.175.cert
 ```
 
-###### 3.3、将服务器证书，密钥和CA文件复制到Harbor主机上的Docker证书文件夹中。您必须首先创建适当的文件夹。
+#### 3.3、将服务器证书，密钥和CA文件复制到Harbor主机上的Docker证书文件夹中。您必须首先创建适当的文件夹。
 
 ```shell
 mkdir -p /etc/docker/certs.d/yourdomain.com/
@@ -261,7 +263,7 @@ cp ca.crt /etc/docker/certs.d/192.168.3.175/
 
 > 如果将默认nginx端口443映射到其他端口，请创建文件夹`/etc/docker/certs.d/yourdomain.com:port`或`/etc/docker/certs.d/harbor_IP:port`。
 
-###### 3.4、重新启动Docker Engine。
+#### 3.4、重新启动Docker Engine。
 
 ```shell
 systemctl restart docker
@@ -287,7 +289,7 @@ systemctl restart docker
        └── ca.crt               <-- 签署注册表证书的证书颁发机构
 ```
 
-###### 开启ipv4转发
+#### 开启ipv4转发
 
 > 查看是否开启转发
 
@@ -736,7 +738,7 @@ ba0dae6243cc: Pushed
 
 > 由于是自建的ca证书，所以需要证书才可以拉取镜像
 
-#### 1、上传证书至服务器上
+### 1、上传证书至服务器上
 
 ```shell
 [root@master ~]#  scp -r root@192.168.3.175:/etc/docker/certs.d /etc/docker/certs.d
@@ -751,7 +753,7 @@ root@192.168.3.175's password:
 ca.crt                                                                  100% 2045     2.6MB/s   00:00
 ```
 
-#### 2、目录结构
+### 2、目录结构
 
 ```shell
 [root@master docker]# cd /etc/docker/
@@ -768,13 +770,13 @@ ca.crt                                                                  100% 204
 2 directories, 5 files
 ```
 
-#### 3、重启docker 服务
+### 3、重启docker 服务
 
 ```shell
 systemctl restart docker
 ```
 
-#### 4、登录docker 仓库
+### 4、登录docker 仓库
 
 ```shell
 [root@master docker]# docker login 192.168.3.175
@@ -787,7 +789,7 @@ https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 Login Succeeded
 ```
 
-#### 5、拉取镜像
+### 5、拉取镜像
 
 ```shell
 [root@master docker]# docker pull 192.168.3.175/k8s/kube-apiserver:v1.20.2
@@ -799,7 +801,7 @@ Status: Downloaded newer image for 192.168.3.175/k8s/kube-apiserver:v1.20.2
 192.168.3.175/k8s/kube-apiserver                 v1.20.2             a8c2fdb8bf76        2 months ago        122MB
 ```
 
-#### 6、仓库设置私有
+### 6、仓库设置私有
 
 > 仓库设置为私有,k8s无法pullimage，需要创建一个`secret`
 
@@ -871,4 +873,22 @@ Login Succeeded
 ## 脚本
 
 自动生成ca脚本：[ca.sh](https://links.jianshu.com/go?to=https%3A%2F%2Ffiles.cnblogs.com%2Ffiles%2Fanesthesia-frx%2Fca.sh)
+
+
+
+# 问题处理
+
+docker login 报错
+
+Error response from daemon: Get https://harbor.dev/v2/: x509: certificate signed by unknown authority
+
+```shell
+# https://blog.csdn.net/tom_fans/article/details/107620248
+# 请求的机器上执行
+mkdir -p /etc/docker/certs.d/192.168.3.175
+
+# 将crt文件拷贝到请求机器上
+scp /data/cert/192.168.3.175.crt root@192.168.3.125:/etc/docker/certs.d/192.168.3.175
+
+```
 
