@@ -87,6 +87,19 @@ systemctl stop elasticsearch
 rpm -e elasticsearch
 rm -rf /var/lib/elasticsearch /etc/elasticsearch /var/log/elasticsearch
 rpm -i elasticsearch-8.17.4-x86_64.rpm
+
+# 迁移数据目录
+systemctl stop elasticsearch  # 停止所有节点服务
+ps aux | grep elasticsearch
+grep "path.data" /etc/elasticsearch/elasticsearch.yml
+
+rsync -avz /var/lib/elasticsearch /data/
+# mv /var/lib/elasticsearch /var/lib/elasticsearch`date +%F`
+vim /etc/elasticsearch/elasticsearch.yml
+# path.data: /data/elasticsearch
+
+systemctl start elasticsearch
+
 ```
 
 
