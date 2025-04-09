@@ -100,6 +100,30 @@ vim /etc/elasticsearch/elasticsearch.yml
 
 systemctl start elasticsearch
 
+
+# 证书解析
+# 获取http.p12密码
+/usr/share/elasticsearch/bin/elasticsearch-keystore show xpack.security.http.ssl.keystore.secure_password
+
+# 获取transport.p12密码
+/usr/share/elasticsearch/bin/elasticsearch-keystore show xpack.security.transport.ssl.keystore.secure_password
+
+# 提取用户证书:
+openssl pkcs12 -in http.p12 -clcerts -nokeys
+# openssl pkcs12 -in http.p12 -clcerts -nokeys -out cert.pem  //pem格式
+# openssl pkcs12 -in http.p12 -clcerts -nokeys -out cert.crt 
+
+# 提取公钥
+openssl pkcs12 -in http.p12 -clcerts  -out public_key.pem  //pem格式
+openssl pkcs12 -in http.p12 -clcerts  -out cert.crt  //crt格式
+
+# 提取私钥
+openssl pkcs12 -in http.p12 -nodes -out private_key.pem
+openssl pkcs12 -in http.p12 -nodes -out private_key.crt
+
+
+# 请求格式
+curl --cert public_key.pem --key private_key.pem --cacert http_ca.crt https://your-es-host:9200
 ```
 
 
